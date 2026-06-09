@@ -206,7 +206,20 @@ function DreamingIntoBeing() {
   const [orders, setOrders] = usePersistentState("orders", []);
   const [entry, setEntry] = useState("");
   const [justAdded, setJustAdded] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const today = todayKey();
+  const layoutRef = useRef(null);
+
+  const selectTab = (id) => {
+    setTab(id);
+    setMenuOpen(false);
+    if (typeof window !== "undefined" && window.innerWidth <= 760 && layoutRef.current) {
+      requestAnimationFrame(() => {
+        const top = layoutRef.current.getBoundingClientRect().top + window.scrollY - 4;
+        window.scrollTo({ top, behavior: "smooth" });
+      });
+    }
+  };
 
   const addGem = () => {
     const t = entry.trim(); if (!t) return;
@@ -216,7 +229,7 @@ function DreamingIntoBeing() {
   const removeGem = (id) => setGems((g) => g.filter((x) => x.id !== id));
 
   return (
-    <div style={st.page}>
+    <div style={st.page} className="dib-page">
       <style>{css}</style>
       <Shimmer />
       {/* fixed botanical corner accents */}
@@ -229,24 +242,48 @@ function DreamingIntoBeing() {
         <span style={st.topbarMonth}>✦ {MONTH_NAME}</span>
       </div>
 
-      <div style={st.frame}>
-        <header style={st.hero}>
-          <div style={st.kicker}>✦ EMBODY WEALTH ✦</div>
-          <h1 style={st.title}>Dreaming Into Being</h1>
-          <p style={st.monthLine}>Welcome to {MONTH_NAME}. This month's theme is dreaming your wealth into being.</p>
-          <p style={st.tagline}>You don't wait for it to show up. You see it, you feel it, you bring it into being.</p>
+      <div style={st.frame} className="dib-frame">
+        <header style={st.hero} className="dib-hero">
+          <div style={st.kicker} className="dib-kicker">✦ EMBODY WEALTH ✦</div>
+          <h1 style={st.title} className="dib-title">Dreaming Into Being</h1>
+          <p style={st.monthLine} className="dib-monthline">Welcome to {MONTH_NAME}. This month's theme is dreaming your wealth into being.</p>
+          <p style={st.tagline} className="dib-tagline">You don't wait for it to show up. You see it, you feel it, you bring it into being.</p>
         </header>
 
-        <div style={st.layout} className="dib-layout">
+        <div style={st.layout} className="dib-layout" ref={layoutRef}>
+          {/* mobile sticky dropdown */}
+          <div className="dib-dropdown" style={st.dropdownWrap}>
+            <button style={st.dropdownTrigger} onClick={() => setMenuOpen((o) => !o)}>
+              <span style={st.dropdownCurrent}>
+                <span style={st.tabGlyph}>{TABS.find(([id]) => id === tab)[2]}</span>
+                <span>{TABS.find(([id]) => id === tab)[1]}</span>
+              </span>
+              <span style={{ ...st.dropdownChevron, transform: menuOpen ? "rotate(180deg)" : "none" }}>⌄</span>
+            </button>
+            {menuOpen && (
+              <>
+                <div onClick={() => setMenuOpen(false)} style={st.dropdownOverlay} />
+                <div style={st.dropdownList} className="fade">
+                  {TABS.map(([id, label, glyph]) => (
+                    <button key={id} onClick={() => selectTab(id)}
+                      style={{ ...st.dropdownItem, ...(tab === id ? st.dropdownItemActive : {}) }}>
+                      <span style={st.tabGlyph}>{glyph}</span><span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           <nav style={st.nav} className="dib-nav">
             {TABS.map(([id, label, glyph]) => (
-              <button key={id} onClick={() => setTab(id)} className="dib-tab" style={{ ...st.tab, ...(tab === id ? st.tabActive : {}) }}>
-                <span style={st.tabGlyph}>{glyph}</span><span>{label}</span>
+              <button key={id} onClick={() => selectTab(id)} className="dib-tab" style={{ ...st.tab, ...(tab === id ? st.tabActive : {}) }}>
+                <span style={st.tabGlyph} className="dib-tab-glyph">{glyph}</span><span>{label}</span>
               </button>
             ))}
           </nav>
 
-          <div style={st.panel} className="fade" key={tab}>
+          <div style={st.panel} className="fade dib-panel" key={tab}>
             {tab === "month" && <MonthTab />}
             {tab === "practice" && (
               <PracticeTab vision={vision} setVision={setVision} savedVision={savedVision}
@@ -358,7 +395,7 @@ function PracticeTab({ vision, setVision, savedVision, setSavedVision, blessings
       </p>
 
       {/* SET VISION */}
-      <div style={st.stepHead}><span style={st.stepPill}>FIRST</span> Come back to the vision</div>
+      <div style={st.stepHead} className="dib-stephead"><span style={st.stepPill}>FIRST</span> Come back to the vision</div>
       <div style={{ ...st.softCard, ...st.cardLilac }}>
         <p style={st.smallBody}>
           This isn't about this month's goals. This is the bigger picture, the life and the business you're
@@ -383,7 +420,7 @@ function PracticeTab({ vision, setVision, savedVision, setSavedVision, blessings
       </div>
 
       {/* CHARGE TOTEM */}
-      <div style={st.stepHead}><span style={st.stepPill}>THEN</span> Charge your totem</div>
+      <div style={st.stepHead} className="dib-stephead"><span style={st.stepPill}>THEN</span> Charge your totem</div>
       <div style={{ ...st.softCard, ...st.cardGold }}>
         <p style={st.smallBody}>
           Pick a totem. A crystal, a ring, a coin, anything small you can hold and carry. Here's how you charge
@@ -401,7 +438,7 @@ function PracticeTab({ vision, setVision, savedVision, setSavedVision, blessings
       </div>
 
       {/* DAILY RITUAL */}
-      <div style={st.stepHead}><span style={st.stepPill}>DAILY</span> The ritual</div>
+      <div style={st.stepHead} className="dib-stephead"><span style={st.stepPill}>DAILY</span> The ritual</div>
       <RitualCard glyph="☀️" title="Morning · wake into the vision" tint={C.gold}>
         Before you reach for your phone, place your hand on your heart. Picture the end of today as if it already
         happened exactly the way you want. See it, and feel the satisfaction of living your wealthy, successful
@@ -420,7 +457,7 @@ function PracticeTab({ vision, setVision, savedVision, setSavedVision, blessings
       </RitualCard>
 
       {/* THREE BLESSINGS */}
-      <div style={st.stepHead}><span style={st.stepPill}>DAILY</span> Three blessings</div>
+      <div style={st.stepHead} className="dib-stephead"><span style={st.stepPill}>DAILY</span> Three blessings</div>
       <div style={{ ...st.softCard, ...st.cardLilac }}>
         <p style={st.smallBody}>
           Each day, bless three things you usually have negative or tight feelings toward. This is the rewiring.
@@ -737,8 +774,14 @@ function EFTScript({ name, sub, setups, rounds }) {
   const [open, setOpen] = useState(false);
   const [before, setBefore] = useState(null);
   const [after, setAfter] = useState(null);
+  const [burst, setBurst] = useState(false);
+  const setAfterValue = (n) => {
+    setAfter(n);
+    if (before !== null && n > before) { setBurst(true); setTimeout(() => setBurst(false), 1600); }
+  };
   return (
     <div style={st.eftCard}>
+      {burst && <Confetti />}
       <button onClick={() => setOpen((o) => !o)} style={st.eftHeader}>
         <span style={st.eftAccent} />
         <span style={st.eftHeaderText}>
@@ -749,7 +792,7 @@ function EFTScript({ name, sub, setups, rounds }) {
       </button>
       {open && (
         <div style={st.eftBody} className="fade">
-          <Rating label="Before you begin, how strong is the feeling? (0 = none, 10 = intense)" value={before} onChange={setBefore} />
+          <Rating label="Before you begin, how open and safe do you feel to receive this right now? (0 = not at all, 10 = completely)" value={before} onChange={setBefore} />
           <div style={st.eftRound}>Karate chop · say each one, tapping the side of your hand</div>
           {setups.map((sLine, i) => <div key={i} style={st.eftSetup}>{sLine}</div>)}
           {rounds.map((r, i) => (
@@ -765,9 +808,16 @@ function EFTScript({ name, sub, setups, rounds }) {
               })}
             </div>
           ))}
-          <Rating label="Now check again. Where's the feeling now? (run it again if it's still high)" value={after} onChange={setAfter} />
-          {before !== null && after !== null && after < before && (
-            <div style={st.ratingShift}>You shifted it down {before - after} {before - after === 1 ? "point" : "points"} ✦</div>
+          <div style={st.eftClose}>Now take a deep breath in 🌬️ and release. What number are you at now?</div>
+          <Rating label="Check in with your body. How open and safe do you feel now?" value={after} onChange={setAfterValue} />
+          {before !== null && after !== null && (
+            after > before ? (
+              <div style={st.ratingUp}>Beautiful, it's rising. ✨ You lifted it {after - before} {after - before === 1 ? "point" : "points"}. Go another round if you want to raise it even higher. 📈</div>
+            ) : after < before ? (
+              <div style={st.ratingShift}>Something moved. You shifted it {before - after} {before - after === 1 ? "point" : "points"}. ✦ Run it again until you feel the full shift. 🔁</div>
+            ) : (
+              <div style={st.ratingSame}>Same number for now, and that's okay. 💜 Run it again, the shift often lands on the next round.</div>
+            )
           )}
         </div>
       )}
@@ -1207,15 +1257,49 @@ a { text-decoration: none; }
 input::placeholder, textarea::placeholder { color: ${C.inkSoft}; opacity: .6; }
 input:focus, textarea:focus { outline: none; border-color: ${C.purple} !important; }
 ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: ${C.lilac}; border-radius: 8px; }
-@media (max-width: 720px) {
-  .dib-layout { flex-direction: column !important; }
-  .dib-nav { flex-direction: row !important; flex-wrap: wrap !important; position: sticky !important; top: 52px !important; flex: none !important; width: auto !important; justify-content: center; z-index: 10; background: rgba(251,248,255,0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 14px; margin: 0 -6px; }
-  .dib-tab { flex: 0 0 auto !important; width: auto !important; }
+@media (max-width: 760px) {
+  /* hide the top bar on mobile; the tab row becomes the pinned element */
+  .dib-topbar { display: none !important; }
+
+  /* tighter page padding for more content width */
+  .dib-page { padding: 0 8px !important; }
+
+  /* shrink the header so it doesn't fill the screen */
+  .dib-hero { margin-bottom: 14px !important; }
+  .dib-kicker { font-size: 10px !important; letter-spacing: 3px !important; margin-bottom: 8px !important; }
+  .dib-title { font-size: 38px !important; margin-bottom: 8px !important; }
+  .dib-monthline { font-size: 15px !important; margin-bottom: 7px !important; }
+  .dib-tagline { font-size: 15px !important; }
+  .dib-frame { padding: 16px 0 40px !important; }
+
+  /* stack layout; replace sidebar nav with a sticky dropdown */
+  .dib-layout { flex-direction: column !important; gap: 12px !important; }
+  .dib-nav { display: none !important; }
+  .dib-dropdown {
+    display: block !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 30;
+    width: calc(100% + 16px) !important;
+    margin: 0 -8px !important;
+    padding: 9px 8px !important;
+    background: rgba(251,248,255,0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 16px rgba(123,63,160,.12);
+  }
+
+  /* wider panel, less inner padding */
+  .dib-panel { padding: 22px 18px !important; border-radius: 18px !important; }
+
+  /* stack the FIRST/SECOND pill above its heading instead of beside */
+  .dib-stephead { flex-direction: column !important; align-items: flex-start !important; gap: 7px !important; font-size: 20px !important; }
 }
 `;
 
 const st = {
-  page: { position: "relative", fontFamily: "'Inter', sans-serif", color: C.ink, minHeight: "100vh", padding: "0 14px", overflow: "hidden",
+  page: { position: "relative", fontFamily: "'Inter', sans-serif", color: C.ink, minHeight: "100vh", padding: "0 14px", overflowX: "clip",
     background: BG_IMAGE
       ? `linear-gradient(180deg, rgba(235,223,247,0.5), rgba(217,199,236,0.5)), url(${BG_IMAGE}) center top / cover fixed no-repeat`
       : `linear-gradient(165deg, #EBDFF7 0%, #E3D4F2 30%, #D9C7EC 60%, #CDB6E4 100%)` },
@@ -1242,6 +1326,19 @@ const st = {
   tagline: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 20, color: C.plum, maxWidth: 680, margin: "0 auto", lineHeight: 1.5 },
   layout: { display: "flex", gap: 22, alignItems: "flex-start" },
   nav: { display: "flex", flexDirection: "column", gap: 8, flex: "0 0 220px", position: "sticky", top: 64, alignSelf: "flex-start", zIndex: 10 },
+  dropdownWrap: { display: "none", position: "relative", width: "100%" },
+  dropdownTrigger: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+    background: GRAD, color: "#fff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 14, padding: "13px 18px",
+    fontSize: 15, fontWeight: 600, boxShadow: "0 6px 20px rgba(155,111,196,.4)" },
+  dropdownCurrent: { display: "flex", alignItems: "center", gap: 10 },
+  dropdownChevron: { fontSize: 20, lineHeight: 1, transition: "transform .2s ease" },
+  dropdownList: { position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 40,
+    background: "#fff", borderRadius: 16, padding: 8, border: `1px solid ${C.lilac}`,
+    boxShadow: "0 16px 40px rgba(123,63,160,.28)", display: "flex", flexDirection: "column", gap: 4, maxHeight: "70vh", overflowY: "auto" },
+  dropdownItem: { display: "flex", alignItems: "center", gap: 11, background: "transparent", color: C.plum,
+    fontSize: 15, fontWeight: 500, padding: "13px 15px", borderRadius: 11, textAlign: "left", width: "100%", border: "none" },
+  dropdownItemActive: { background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)", color: C.royal, fontWeight: 700 },
+  dropdownOverlay: { position: "fixed", inset: 0, zIndex: 35, background: "transparent" },
   tab: { display: "flex", alignItems: "center", gap: 11, background: "rgba(255,255,255,0.55)", color: C.plum,
     fontSize: 14, fontWeight: 500, padding: "13px 16px", borderRadius: 14, backdropFilter: "blur(6px)", textAlign: "left", width: "100%",
     border: `1px solid ${C.lilac}` },
@@ -1263,7 +1360,10 @@ const st = {
   ratingScale: { display: "flex", gap: 5, flexWrap: "wrap" },
   ratingDot: { width: 30, height: 30, borderRadius: "50%", border: `1.5px solid ${C.lilac}`, background: "#fff", color: C.purple, fontSize: 13, fontWeight: 600, flexShrink: 0 },
   ratingDotOn: { background: GRAD, color: "#fff", borderColor: "transparent", boxShadow: "0 3px 10px rgba(232,79,138,.3)" },
-  ratingShift: { marginTop: 12, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16, color: C.pink },
+  ratingShift: { marginTop: 12, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16, color: C.pink, lineHeight: 1.5 },
+  ratingUp: { marginTop: 12, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16.5, color: C.purple, lineHeight: 1.5, fontWeight: 500 },
+  ratingSame: { marginTop: 12, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 15.5, color: C.inkSoft, lineHeight: 1.5 },
+  eftClose: { marginTop: 16, marginBottom: 4, fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 16, color: C.plum, lineHeight: 1.6, textAlign: "center" },
   h3: { fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 500, margin: "30px 0 16px",
     background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block" },
   callout: { background: `linear-gradient(135deg, ${C.lilacSoft}, #F3ECFB)`, borderRadius: 16, padding: "20px 22px", margin: "4px 0 8px",
