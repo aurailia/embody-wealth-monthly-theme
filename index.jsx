@@ -1,0 +1,1291 @@
+import React, { useState, useEffect, useRef, useMemo } from "react";
+
+// ─────────────────────────────────────────────────────────────
+//  DREAMING INTO BEING  ·  Embody Wealth
+//  Daily manifestation practice for the month (SATS)
+//  Palette: royal purple + plum + lavender + gold, hot-pink accents
+//  Tabs (left on desktop, top on mobile):
+//  The Month · The Practice · Hypnosis & Healing · Pull a Card · Crystal Grid · Abundance Jar
+// ─────────────────────────────────────────────────────────────
+
+// ── PASTE YOUR LINKS HERE ──
+const ORACLE_URL = "https://aurailia.github.io/wealthy-woman-oracle/";
+const BG_IMAGE = "https://aurailia.github.io/embody-wealth-monthly-theme/images/background.png";
+const GRID_URL = ""; // Crystal Grid link (leave "" until ready)
+const HYPNOSIS = [
+  { title: "Hypnosis for Unwavering Belief", meta: "Anchor the certainty that it's already done", url: "https://dl.dropboxusercontent.com/scl/fi/unzndpgwyp3540egj0ive/Hypnosis-for-unwavering-belief.mp3?rlkey=xq5v77xbnwmfn0fglskvmvpih" },
+  { title: "Millionaire Hypnosis", meta: "Step into wealth frequency", url: "https://dl.dropboxusercontent.com/scl/fi/acts6jn0i55p431s0ppk4/millionaire-hypnosis.mp3?rlkey=7k2st6lfptdh1dfff3mly7bul" },
+  { title: "Hypnosis to Quantum Leap", meta: "Collapse the timeline to your next level", url: "https://dl.dropboxusercontent.com/scl/fi/i7xz6hebldg1odm7q3sug/hypnosis-quantum-leap.mp3?rlkey=pklpfnbalojeitie740b39rra" },
+];
+
+const C = {
+  royal: "#2E1A47",     // dark plum (nav/sidebar)
+  plum: "#5B3A86",      // plum
+  purple: "#8B5FBF",    // mid purple
+  lilac: "#C9B6E4",     // soft lavender
+  lilacSoft: "#EBE2F7", // pale lavender
+  cream: "#FBF8FF",     // airy near-white
+  // gradient accent system (pink → purple → teal)
+  gradStart: "#F4A0C0", // soft pink
+  gradMid: "#9B6FC4",   // purple
+  gradEnd: "#5BC9C9",   // teal
+  pink: "#E85D9A",      // pink accent
+  teal: "#4FB8C4",      // teal accent
+  ink: "#3A2E45",
+  inkSoft: "#766685",
+  gold: "#9B6FC4",      // legacy refs now map to purple
+  goldSoft: "#C9B6E4",  // legacy refs now map to lilac
+};
+const GRAD = `linear-gradient(110deg, ${C.gradStart} 0%, ${C.gradMid} 52%, ${C.gradEnd} 100%)`;
+const GRAD_TEXT = `linear-gradient(105deg, ${C.plum} 0%, ${C.gradMid} 45%, ${C.gradEnd} 100%)`;
+
+const GEM_COLORS = ["#7B3FA0", "#B79CD9", "#C9A227", "#E84F8A", "#9B6FC4", "#E3C766", "#5B2A86", "#D4B3EC"];
+
+const TABS = [
+  ["month", "The Month", "🌙"],
+  ["practice", "The Practice", "✦"],
+  ["spell", "Magic Spell", "🔮"],
+  ["hypnosis", "Hypnosis & Healing", "🎧"],
+  ["oracle", "Pull a Card", "🃏"],
+  ["grid", "Order from the Universe", "🌠"],
+  ["jar", "Abundance Jar", "💎"],
+];
+
+// 31 cards · one for each day. Images live in your GitHub repo /cards folder.
+// Each image URL is built as: CARD_IMG_BASE + slug + ".png"
+const CARD_IMG_BASE = "https://aurailia.github.io/embody-wealth-monthly-theme/cards/";
+const COVER_IMAGES = [
+  CARD_IMG_BASE + "cover-1.png",
+  CARD_IMG_BASE + "cover-2.png",
+  CARD_IMG_BASE + "cover-3.png",
+];
+const ORACLE_DECK = [
+  { slug: "abundance-flows", title: "Abundance Flows", desc: "What you've been waiting for is already moving toward you.",
+    meaning: "This is a card of yes. The channels are open and the timing is ripe. Abundance moves toward ease, not strain, and right now the path between you and what you want is clearer than it's been in a while.",
+    why: "You've been gripping. Holding your breath, waiting for proof before you'll relax. This card came to tell you the gripping is the only thing in the way. Loosen your hands. What's yours is already on its way." },
+  { slug: "the-threshold", title: "The Threshold", desc: "You're standing at a doorway. Cross anyway.",
+    meaning: "Behind you is the old way you've done money. Ahead is something you can't fully see yet, which is exactly why you hesitate. The next level of wealth lives on the other side of the woman willing to walk through before she's certain.",
+    why: "You've been waiting to feel ready. You won't, not before you move. This card is the nudge to step through the door now and let the certainty meet you on the other side." },
+  { slug: "tend-the-roots", title: "Tend the Roots", desc: "What you planted is still growing underground.",
+    meaning: "Not everything blooms this season. What you've put into motion is real, but it's doing quiet work you can't see yet. This is a card of patience, not a card of no.",
+    why: "You've been about to give up on something because it hasn't shown results fast enough. Don't dig it up to check on it. Keep watering. The harvest is closer than the doubt is telling you." },
+  { slug: "the-mirror", title: "The Mirror", desc: "Your money is reflecting a pattern, not a punishment.",
+    meaning: "However money is behaving in your life, scarce, chaotic, feast then famine, it's showing you something about what's running underneath. When you change what it mirrors, the reflection changes too.",
+    why: "You've been taking your money situation personally, like proof that something's wrong with you. It isn't. Look at it without shame today. The pattern it's showing you is the thing ready to heal." },
+  { slug: "the-open-hand", title: "The Open Hand", desc: "You can't receive with a closed fist.",
+    meaning: "You ask for more while holding everything you have in a tight grip, the resentment, the proving, the keeping score. The universe can't place anything new into a clenched hand.",
+    why: "Something good is trying to reach you and you keep flinching away from it. Notice what you do when someone offers you help, money, or praise. Soften there. That flinch is the whole lesson." },
+  { slug: "the-reckoning", title: "The Reckoning", desc: "The avoidance costs more than the truth.",
+    meaning: "This is the card of honest numbers. Wealth begins with facing what is. The thing you've been refusing to look at has been growing in the dark precisely because you won't turn on the light.",
+    why: "You already know what you've been avoiding. Open the account. Read the total. The relief on the other side of looking is far bigger than the fear of it. Today is the day you stop running from it." },
+  { slug: "more-than-enough", title: "More Than Enough", desc: "You're allowed to want the whole thing.",
+    meaning: "You keep shrinking the desire down to what feels reasonable. But the question underneath your question isn't about a number. It's whether you're allowed to have the full life. You are.",
+    why: "You've been asking for just enough to get by, because the big want feels greedy or dangerous. It isn't. Let yourself want all of it today, out loud, without trimming it down to be polite." },
+  { slug: "the-quiet-yes", title: "The Quiet Yes", desc: "It's already decided in your favor.",
+    meaning: "Not every yes arrives loud. Some come as a settling, a knowing, a door that simply opens when you stop forcing the others. The thing you're asking about has already tipped toward you.",
+    why: "You came looking for a sign. This is it. Stop auditioning for something that's already yours. Move like it's handled, because it is." },
+  { slug: "not-yet", title: "Not Yet", desc: "The delay is mercy, not denial.",
+    meaning: "What you're pushing for isn't being refused. It's being held until you can carry it. If it arrived in the state you're in now, it would slip through your fingers. The pause is a gift.",
+    why: "You're rushing something that's protecting you by waiting. Use this time. Become the woman who can hold it without it breaking her. Then it comes, and it stays." },
+  { slug: "the-overflow", title: "The Overflow", desc: "Picture it spilling over, not just barely enough.",
+    meaning: "Scarcity asks for exactly enough. Wealth expects overflow, the surplus that lets you give freely, rest without guilt, and say yes without checking the balance first.",
+    why: "You've been calibrating your dreams to survival. Today, let yourself imagine the version where there's more than enough. Not because you're greedy, because overflow is the frequency that lets you be generous." },
+  { slug: "she-is-here", title: "She Is Here", desc: "The woman you're becoming isn't in next year.",
+    meaning: "You speak about your future self like she lives somewhere far off. She doesn't. She's the one deciding, right now, whether to meet today with fear or expectation. That's a present-tense choice.",
+    why: "You've been postponing her, waiting until you've earned the right to be her. Stop saving her for later. Make one decision today the way she would. She's been here the whole time." },
+  { slug: "the-seed-money", title: "The Seed", desc: "Something small already came. Count it.",
+    meaning: "A refund. A gift. A sale you didn't chase. It came quietly and you almost missed it because you were scanning the horizon for the big thing. The big thing is built from the small ones you overlook.",
+    why: "You've been so focused on what hasn't arrived that you've stopped noticing what has. Look back at this week. Name what came. Let it count. Gratitude is how you tell the universe to send more." },
+  { slug: "release-the-how", title: "Release the How", desc: "You don't need to see the whole staircase.",
+    meaning: "You've been trying to control the exact route the money takes to reach you. That's not your job. Your job is to hold the vision clearly and take the step in front of you. The how is handled above your pay grade.",
+    why: "You're gripping a plan that was never yours to micromanage. Loosen it. Decide what you want, then let it arrive in a way you didn't predict. The surprise route is often the better one." },
+  { slug: "worth-the-ask", title: "Worth the Ask", desc: "Raise it. Say the number. Don't flinch.",
+    meaning: "This is the card of your own value. You've been pricing yourself for the comfort of the person on the other side, not for the truth of what you bring. The discomfort you feel saying the higher number is just the old story leaving.",
+    why: "You already know your prices are too low. You've known for a while. This card is permission to charge what it's actually worth and to say the number without shrinking after it." },
+  { slug: "the-clearing", title: "The Clearing", desc: "Something has to be let go to make room.",
+    meaning: "You're asking for more while your hands and your life are full of things that no longer fit, an offer that drains you, a client who underpays, a story about money you inherited. Abundance needs space to land.",
+    why: "You've been adding without subtracting, and it's why you feel full but not free. Look at what you're carrying that you've outgrown. Set one thing down today. The room you make is the room it fills." },
+  { slug: "trust-the-timing", title: "Trust the Timing", desc: "It's coming. The clock isn't broken.",
+    meaning: "You've been measuring your worth against how long it's taking. But the timeline you imagined was never a promise, just a guess made by a more anxious version of you. The thing is still on its way.",
+    why: "You're behind only according to a schedule you invented. This card came to tell you to stop punishing yourself for the pace. What's yours is not late. It's arriving exactly when you can hold it." },
+  { slug: "the-witness", title: "The Witness", desc: "Be seen. The right ones are watching.",
+    meaning: "You've been doing the work in the dark, half-hoping to be found without being seen. But money flows toward what's visible. The people meant to pay you can't find what you keep hidden.",
+    why: "You've been shrinking your visibility to feel safe, and calling it humility. It isn't. Let yourself be seen today, in one real way. The soulmate clients are already looking for exactly you." },
+  { slug: "enough-of-the-proving", title: "Enough of the Proving", desc: "You don't have to earn rest or wealth.",
+    meaning: "Somewhere you learned that good things must be paid for in exhaustion. So you keep proving, performing, over-delivering. But worthiness was never the entry fee. You can stop auditioning for a life that's already yours.",
+    why: "You're tired in a way sleep doesn't fix, because you've been trying to deserve what's already available to you. Put the proving down today. Receive something you didn't earn and let it be okay." },
+  { slug: "the-spark-returns", title: "The Spark Returns", desc: "The fire you thought you lost is still lit.",
+    meaning: "You've been mourning a passion you assumed was gone. It isn't gone. It went quiet under the busyness and the doubt. A small breath is all it needs to catch again.",
+    why: "You came here a little dimmed, wondering if you've still got it. You do. This card is the ember. Tend it today, one small act that reminds you why you started, and watch it flare back up." },
+  { slug: "money-is-loyal", title: "Money Is Loyal", desc: "It's drawn to a woman who expects it.",
+    meaning: "Money isn't running from you. It moves toward clarity, ease, and expectation, and away from desperation and apology. How you hold it in your mind is how it behaves in your life.",
+    why: "Listen to how you talk about money when no one's around. There's the leak. This card asks you to rewrite one of those sentences today into something a wealthy woman would actually say." },
+  { slug: "the-full-table", title: "The Full Table", desc: "Set a place for it before it arrives.",
+    meaning: "The woman who has it acts like a host, not a beggar. She prepares the room, she expects the guest, she lives as if the good is already on its way, because it is.",
+    why: "You've been waiting for the money to show up before you'll let yourself live like it's coming. Reverse it. Set the table tonight. Move like the abundance is already at the door." },
+  { slug: "the-honest-no", title: "The Honest No", desc: "A boundary is a wealth practice.",
+    meaning: "Every yes you give from obligation is a withdrawal from your energy and your worth. This card is about the no you've been avoiding, the one that protects the thing you're really here to build.",
+    why: "There's a yes you gave that you regret, and a no you're scared to say. Say it. Your time and energy are the real currency, and you've been spending them to keep other people comfortable." },
+  { slug: "already-rich", title: "Already Rich", desc: "Look at what you'd have prayed for once.",
+    meaning: "There is a version of you, not long ago, who would weep to have what you have now and barely notice. Wealth is partly a practice of seeing. The proof you're asking for is already all around you.",
+    why: "You've been so focused on the gap that you've gone blind to the abundance you're standing in. Today, count what you already have that you once only dreamed of. Let it land before you ask for more." },
+  { slug: "the-leap", title: "The Leap", desc: "The net appears after you jump.",
+    meaning: "You keep waiting for guaranteed footing before you'll commit. But the kind of wealth you want lives past the edge of what's certain. The leap comes first. The ground forms under you as you go.",
+    why: "You've been circling a decision for too long, asking for one more sign. This is the sign. Stop negotiating with the fear. Commit, move, and trust that the support shows up once you're in motion." },
+  { slug: "soften", title: "Soften", desc: "It doesn't have to be a fight.",
+    meaning: "You learned that everything worth having must be wrestled for. But forcing was never the thing that worked, the feeling was, the ease was. Struggle is not the price of abundance.",
+    why: "You've been white-knuckling something that wants to come gently. Let it be easy today. Stop bracing. The relaxed, open version of you is far more magnetic than the one fighting for it." },
+  { slug: "the-decision", title: "The Decision", desc: "Decide first. The proof comes after.",
+    meaning: "You keep asking the universe to confirm it before you'll fully commit. It works the other way. You decide, you move as if it's done, and then the evidence arrives to match the decision.",
+    why: "You've been waiting to be sure. Certainty isn't a prerequisite, it's a result. Decide it's done today. Move like a woman who already has it, and watch reality rearrange to agree with you." },
+  { slug: "the-return", title: "The Return", desc: "What you gave is coming back, multiplied.",
+    meaning: "You've poured out, often without keeping score, sometimes without being repaid. This card says the ledger is not forgotten. What you've given in good faith is circling back to you in a form you didn't expect.",
+    why: "You've felt, lately, like you give and give and it disappears. It doesn't. This card came to tell you the return is on its way. Stay open to receiving it, even when it arrives looking different than you imagined." },
+  { slug: "the-unshrinking", title: "The Unshrinking", desc: "Stop making yourself smaller to be liked.",
+    meaning: "You've been dimming, softening your prices, your magic, your ambition, so others stay comfortable. But the wealth you want requires the full size of you. The shrinking has cost you more than it ever protected.",
+    why: "You made yourself smaller again recently, and you felt it. This card is permission to take up your full space. The people meant for you are drawn to the unshrunk version. Be her today." },
+  { slug: "the-still-point", title: "The Still Point", desc: "Rest is part of the work.",
+    meaning: "You believe slowing down means falling behind. But the field has to lie fallow to stay fertile. Some of your most abundant moves will come from stillness, not more hustle.",
+    why: "You're exhausted and pushing anyway, afraid that resting will cost you. The opposite is true. This card is permission to stop today. The clarity and the next move are waiting on the other side of the rest." },
+  { slug: "the-clear-channel", title: "The Clear Channel", desc: "Say what you do plainly. Watch it land.",
+    meaning: "Confusion is expensive. When your message is muddy, the right people scroll past, not because your work isn't powerful, but because they couldn't tell it was for them. Clarity is a money practice.",
+    why: "You've been hiding your genius behind vague words because the clear version feels too bold. Say it plainly today. The moment people understand exactly what you do, the yeses start to come." },
+  { slug: "it-is-done", title: "It Is Done", desc: "Live from the end. It's already real.",
+    meaning: "This is the card of the fulfilled wish. You don't reach for what's already yours, you occupy it. Somewhere it's already complete, and your only task is to feel it as real until the world catches up.",
+    why: "You've been living in the wanting, refreshing for proof. This card came to move you into the having. Today, feel the satisfaction of it already done. Not hoping, not trying. Done. Decided. Yours." },
+];
+
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const MONTH_NAME = new Date().toLocaleDateString(undefined, { month: "long" });
+const prettyDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+
+// Auto-saving state hook (localStorage). Works on GitHub Pages: same browser remembers everything.
+const KEY = "dreamingIntoBeing.v1";
+const loadStore = () => {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+};
+function usePersistentState(field, initial) {
+  const [val, setVal] = useState(() => {
+    const s = loadStore();
+    return field in s ? s[field] : initial;
+  });
+  useEffect(() => {
+    try {
+      const s = loadStore();
+      s[field] = val;
+      localStorage.setItem(KEY, JSON.stringify(s));
+    } catch {}
+  }, [field, val]);
+  return [val, setVal];
+}
+
+export default function DreamingIntoBeing() {
+  const [tab, setTab] = useState("month");
+  const [gems, setGems] = usePersistentState("gems", []);
+  const [vision, setVision] = usePersistentState("vision", "");
+  const [savedVision, setSavedVision] = usePersistentState("savedVision", "");
+  const [blessings, setBlessings] = usePersistentState("blessings", {});
+  const [orders, setOrders] = usePersistentState("orders", []);
+  const [entry, setEntry] = useState("");
+  const [justAdded, setJustAdded] = useState(false);
+  const today = todayKey();
+
+  const addGem = () => {
+    const t = entry.trim(); if (!t) return;
+    setGems((g) => [...g, { id: Date.now() + Math.random(), text: t, color: GEM_COLORS[g.length % GEM_COLORS.length], date: today }]);
+    setEntry(""); setJustAdded(true); setTimeout(() => setJustAdded(false), 1000);
+  };
+  const removeGem = (id) => setGems((g) => g.filter((x) => x.id !== id));
+
+  return (
+    <div style={st.page}>
+      <style>{css}</style>
+      <Shimmer />
+      {/* fixed botanical corner accents */}
+      <div style={st.cornerBL} aria-hidden><Crystals /></div>
+      <div style={st.cornerBR} aria-hidden><Crystals flip /></div>
+
+      {/* sticky compact top bar */}
+      <div style={st.topbar} className="dib-topbar">
+        <span style={st.topbarTitle}>Dreaming Into Being</span>
+        <span style={st.topbarMonth}>✦ {MONTH_NAME}</span>
+      </div>
+
+      <div style={st.frame}>
+        <header style={st.hero}>
+          <div style={st.kicker}>✦ EMBODY WEALTH ✦</div>
+          <h1 style={st.title}>Dreaming Into Being</h1>
+          <p style={st.monthLine}>Welcome to {MONTH_NAME}. This month's theme is dreaming your wealth into being.</p>
+          <p style={st.tagline}>You don't wait for it to show up. You see it, you feel it, you bring it into being.</p>
+        </header>
+
+        <div style={st.layout} className="dib-layout">
+          <nav style={st.nav} className="dib-nav">
+            {TABS.map(([id, label, glyph]) => (
+              <button key={id} onClick={() => setTab(id)} className="dib-tab" style={{ ...st.tab, ...(tab === id ? st.tabActive : {}) }}>
+                <span style={st.tabGlyph}>{glyph}</span><span>{label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div style={st.panel} className="fade" key={tab}>
+            {tab === "month" && <MonthTab />}
+            {tab === "practice" && (
+              <PracticeTab vision={vision} setVision={setVision} savedVision={savedVision}
+                setSavedVision={setSavedVision} blessings={blessings} setBlessings={setBlessings} today={today} />
+            )}
+            {tab === "hypnosis" && <HypnosisTab />}
+            {tab === "spell" && <SpellTab />}
+            {tab === "oracle" && <OracleTab />}
+            {tab === "grid" && <GridTab orders={orders} setOrders={setOrders} />}
+            {tab === "jar" && <JarTab gems={gems} entry={entry} setEntry={setEntry} addGem={addGem} removeGem={removeGem} justAdded={justAdded} />}
+          </div>
+        </div>
+
+        <footer style={st.footer}>
+          <p style={st.saveHint}>Your vision, blessings, and jar save automatically in this browser. Come back anytime.</p>
+          <p style={st.signoff}>I see you. I believe in you. To living our dreams.</p>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+// ───────────── THE MONTH ─────────────
+function MonthTab() {
+  return (
+    <div>
+      <p style={st.welcome}>We've done this before in Embody Wealth, and it's been powerful.</p>
+      <p style={st.body}>
+        So we're running it again. It's called Dreaming Into Being, where you manifest wealth by visualizing it
+        into reality. This is a daily practice for the whole month. We rewire for abundance, shift into receiving
+        mode, and bring the life you want into being using SATS.
+      </p>
+      <div style={st.callout}>
+        <div style={st.calloutTitle}>What is SATS?</div>
+        <p style={st.calloutBody}>
+          State Akin To Sleep, a technique from Neville Goddard. You drop into the relaxed state right before
+          sleep and visualize your desire as already real. The principle underneath it is the Law of Assumption:
+          what you assume to be true in your mind shows up in your reality. We use SATS at night to plant the
+          vision, then wake into it to set the tone for the day.
+        </p>
+      </div>
+
+      <h3 style={st.h3}>Why this rewires Mind, Body &amp; Soul</h3>
+      <Pillar glyph="🧠" name="Mind">
+        Your mind doesn't separate vividly imagined from real. When you rehearse the wealth you want in that
+        state right before sleep, you're feeding your subconscious a new assumption. Repeat it daily and the
+        assumption of abundance becomes the default your mind scans the world for. You start noticing the people,
+        openings, and yeses that were always there.
+      </Pillar>
+      <Pillar glyph="👑" name="Body">
+        Manifestation isn't only a thought. It's a feeling in the body. When you visualize and actually feel the
+        satisfaction of the wealthy, successful life, your nervous system practices receiving it as safe and
+        normal before it arrives. The more you feel it, the more powerful it is. Your body starts recognizing
+        abundance as home, so it stops bracing against it.
+      </Pillar>
+      <Pillar glyph="🕊️" name="Soul">
+        You're not begging for it. You're assuming it. Dreaming into being is the soul-level decision that what
+        you desire is already yours and you're simply walking toward it. That certainty changes how you show up,
+        what you create, how you receive. The woman living your vision isn't ahead of you. You're becoming her in
+        your imagination first, then watching the 3D catch up.
+      </Pillar>
+
+      <h3 style={st.h3}>What's happening this month</h3>
+      <div style={st.eventList}>
+        {[
+          ["🌙", "The Daily Practice", "Come back to your vision and charge your totem, then run the morning, totem, and night ritual each day. Find it in The Practice tab."],
+          ["🔮", "The \"It Is Done\" Money Spell", "Open the month with a sealing ritual to decide it's already done. Cast it from the Magic Spell tab."],
+          ["🃏", "Pull a Card", "Pull a daily card from the Dreaming Into Being oracle to see what your vision is asking for."],
+          ["🌠", "Order from the Universe", "Place a specific order, come back daily to tune in, and check it off when it arrives. In the Order from the Universe tab."],
+          ["🎧", "Hypnosis & Healing", "Hypnosis audios for the month, plus EFT tapping and Ho'oponopono in the Hypnosis & Healing tab."],
+          ["💎", "Abundance Jar", "Log everything you receive this month and watch the proof pile up."],
+          ["💸", "Group Hypnosis · Releasing the Ceiling · June 12", "A deep session to lift the ceiling on what you let yourself receive."],
+        ].map(([g, t, d], i) => (
+          <div key={i} style={st.eventRow}>
+            <span style={st.eventGlyph}>{g}</span>
+            <div><div style={st.eventTitle}>{t}</div><div style={st.eventDesc}>{d}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ───────────── THE PRACTICE ─────────────
+function PracticeTab({ vision, setVision, savedVision, setSavedVision, blessings, setBlessings, today }) {
+  const savedBlessings = blessings[today] || [];
+  const [draft, setDraft] = useState(["", "", ""]);
+  const setDraftAt = (i, val) => setDraft((d) => { const n = [...d]; n[i] = val; return n; });
+  const saveBlessings = () => {
+    const toAdd = draft.map((x) => x.trim()).filter(Boolean);
+    if (toAdd.length === 0) return;
+    setBlessings((b) => ({ ...b, [today]: [...(b[today] || []), ...toAdd] }));
+    setDraft(["", "", ""]);
+  };
+  const removeBlessing = (idx) => {
+    setBlessings((b) => {
+      const list = [...(b[today] || [])];
+      list.splice(idx, 1);
+      return { ...b, [today]: list };
+    });
+  };
+
+  return (
+    <div>
+      <p style={st.body}>
+        Here's the practice. First you come back to your vision and charge your totem. Then each day you run the
+        simple ritual: morning, totem, night, plus three blessings. The more you see it, feel it, and imagine
+        it, the faster it lands in your 3D world.
+      </p>
+
+      {/* SET VISION */}
+      <div style={st.stepHead}><span style={st.stepPill}>FIRST</span> Come back to the vision</div>
+      <div style={{ ...st.softCard, ...st.cardLilac }}>
+        <p style={st.smallBody}>
+          This isn't about this month's goals. This is the bigger picture, the life and the business you're
+          here to create and live. Close your eyes for a few minutes and see it. Where you live, how your days
+          feel, the work you do, the woman you are inside it, the freedom and the abundance. Don't just think it.
+          Feel it. Let your body remember what you're building toward.
+        </p>
+        <p style={{ ...st.smallBody, fontWeight: 600, color: C.plum }}>
+          Then write your vision below, or tap the mic on your keyboard and speak it freely. Present tense, as if
+          you're already living it. This is the vision you'll come back to, see, and feel every day this month.
+        </p>
+        <textarea style={st.textarea} value={vision}
+          placeholder="See it and feel it… 'I wake up in the home I love. My business runs with ease and brings in more than enough. My work reaches the women it's meant for. I feel free, abundant, and fully myself…'"
+          onChange={(e) => setVision(e.target.value)} />
+        <div style={st.rowBetween}>
+          <button style={st.btn} onClick={() => setSavedVision(vision)}>{savedVision ? "Update my vision" : "Save my vision"}</button>
+          {savedVision && <span style={st.streak}>Vision saved ✦</span>}
+        </div>
+        <p style={{ ...st.smallBody, marginTop: 12, marginBottom: 0, fontStyle: "italic" }}>
+          For specific things you're calling in this month, place those in the Order from the Universe tab.
+        </p>
+      </div>
+
+      {/* CHARGE TOTEM */}
+      <div style={st.stepHead}><span style={st.stepPill}>THEN</span> Charge your totem</div>
+      <div style={{ ...st.softCard, ...st.cardGold }}>
+        <p style={st.smallBody}>
+          Pick a totem. A crystal, a ring, a coin, anything small you can hold and carry. Here's how you charge
+          it:
+        </p>
+        <ol style={st.numList}>
+          <li>Close your eyes and visualize your ideal life and exactly who you are inside it. How you move, how you speak, what your days feel like, who you've become.</li>
+          <li>Let it build until you feel it in your heart. Stay there until the feeling is real and warm in your chest.</li>
+          <li>Hold your totem to your heart and imagine that feeling flowing out of your heart and into the totem, filling it completely.</li>
+          <li>When it feels full, open your eyes. Your totem now holds the energy of your highest self and the life you desire.</li>
+        </ol>
+        <p style={{ ...st.smallBody, margin: 0 }}>
+          For an even deeper charge, do this while listening to a hypnosis from the Hypnosis &amp; Healing tab.
+        </p>
+      </div>
+
+      {/* DAILY RITUAL */}
+      <div style={st.stepHead}><span style={st.stepPill}>DAILY</span> The ritual</div>
+      <RitualCard glyph="☀️" title="Morning · wake into the vision" tint={C.gold}>
+        Before you reach for your phone, place your hand on your heart. Picture the end of today as if it already
+        happened exactly the way you want. See it, and feel the satisfaction of living your wealthy, successful
+        life in your body. Stay with that feeling for a minute or two. This sets the tone for your whole day.
+      </RitualCard>
+      <RitualCard glyph="🔮" title="Anytime · connect with your totem" tint={C.purple}>
+        At least once during the day, hold your charged totem for about 30 seconds. Feel the energy you placed in
+        it. Reconnect with the vision and let it remind you who you're being this month. Keep the totem somewhere
+        you'll see it, your desk, your bag, your nightstand.
+      </RitualCard>
+      <RitualCard glyph="🌙" title="Night · fall asleep with intention" tint={C.plum}>
+        As you drift off, hold your vision close in that relaxed state right before sleep (this is SATS).
+        Visualize the scene of your desire fulfilled and feel the emotions of it being real. Loop it gently as
+        you fall asleep. The more you feel it, the more powerful it is. You're planting it in your subconscious
+        overnight.
+      </RitualCard>
+
+      {/* THREE BLESSINGS */}
+      <div style={st.stepHead}><span style={st.stepPill}>DAILY</span> Three blessings</div>
+      <div style={{ ...st.softCard, ...st.cardLilac }}>
+        <p style={st.smallBody}>
+          Each day, bless three things you usually have negative or tight feelings toward. This is the rewiring.
+          You're teaching your mind and body to meet what used to trigger lack with gratitude instead.
+        </p>
+        <div style={st.exampleBox}>
+          <div style={st.exampleLabel}>For example</div>
+          <div style={st.exampleLine}>"I bless my bills. Thank you for the home, the power, and the phone I get to use every day."</div>
+          <div style={st.exampleLine}>"I bless my bank account. Thank you for holding my money and always refilling."</div>
+          <div style={st.exampleLine}>"I bless my body. Thank you for carrying me through every day."</div>
+        </div>
+        <div style={st.practiceNote}>
+          <strong>The practice:</strong> say each blessing out loud with your hand on your heart. Don't rush it.
+          Pause after each one and actually feel the gratitude land before you move to the next. You can keep the
+          same three every day, just notice how your feeling toward them softens over the month. Write them here
+          and share them in the group.
+        </div>
+        {[0, 1, 2].map((i) => (
+          <input key={i} style={{ ...st.input, marginBottom: 8 }} value={draft[i]} placeholder={`Blessing ${i + 1}`}
+            onChange={(e) => setDraftAt(i, e.target.value)} onKeyDown={(e) => e.key === "Enter" && saveBlessings()} />
+        ))}
+        <button style={st.btn} onClick={saveBlessings}>Save blessings</button>
+
+        {savedBlessings.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <div style={st.miniLabel}>Today's blessings</div>
+            <ul style={st.list}>
+              {savedBlessings.map((b, idx) => (
+                <li key={idx} style={st.listItem}>
+                  <span style={st.blessingDot}>✦</span>
+                  <span style={st.listText}>{b}</span>
+                  <button style={st.removeBtn} onClick={() => removeBlessing(idx)}>×</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* SHARE */}
+      <div style={{ ...st.softCard, ...st.cardPlum, marginTop: 16 }}>
+        <div style={st.miniKicker}>SHARE YOUR JOURNEY</div>
+        <p style={{ ...st.smallBody, color: C.lilacSoft, margin: 0 }}>
+          Post in the group: how it felt to fall asleep holding your vision, plus your three blessings for the
+          day. As you bring this into daily life, watch the people, events, and circumstances that support your
+          dream start showing up.
+        </p>
+      </div>
+    </div>
+  );
+}
+function RitualCard({ glyph, title, tint, children }) {
+  return (
+    <div style={st.ritualCard}>
+      <div style={st.ritualHead}><span style={{ ...st.ritualGlyph, background: tint }}>{glyph}</span><span style={st.ritualTitle}>{title}</span></div>
+      <p style={st.ritualBody}>{children}</p>
+    </div>
+  );
+}
+
+// ───────────── MAGIC SPELL ─────────────
+function SpellTab() {
+  return (
+    <div>
+      <h3 style={{ ...st.h3, marginTop: 0 }}>The "It Is Done" Money Spell</h3>
+      <p style={st.body}>
+        We open this work with magic. This is a sealing, a moment of deciding, once and for all, that what you
+        desire is already real. Not hoped. Not wished. Done. Cast it whenever you're ready to begin.
+      </p>
+
+      <SpellBlock title="What you need">
+        <ul style={st.spellList}>
+          <li>A gold or white candle</li>
+          <li>Three bay leaves</li>
+          <li>A pen</li>
+          <li>Cinnamon</li>
+          <li>A piece of paper</li>
+          <li>Your certainty</li>
+        </ul>
+      </SpellBlock>
+
+      <SpellStep n="1" title="Enter sacred space">
+        Light your candle. Take three slow breaths. Feel your feet on the floor.
+      </SpellStep>
+      <SpellStep n="2" title="Write your three decrees">
+        On each bay leaf, write one thing that is sealed, decided, non-negotiable.
+        <div style={st.spellSub}>
+          <div><strong>Leaf one · your income:</strong> "$______ flows to me consistently."</div>
+          <div><strong>Leaf two · your business:</strong> "My work reaches the women it was made for."</div>
+          <div><strong>Leaf three · your identity:</strong> "I am the woman it is already done for."</div>
+        </div>
+        Hold all three bay leaves in your palms. Close your eyes. Feel the weight of decided. Not hoped. Not
+        wished. Done.
+      </SpellStep>
+      <SpellStep n="3" title="Write your decree">
+        On your paper, in your own handwriting, write:
+        <div style={st.incantation}>
+          "As above, so below. As within, so without. What I have decided in the unseen is already real in the
+          seen. My business thrives. My income flows. My clients come. My power is certain. This is not a wish.
+          This is a fact. It is done."
+        </div>
+        Sign your name.
+      </SpellStep>
+      <SpellStep n="4" title="Seal it">
+        Sprinkle cinnamon over your signature, sealing it with acceleration. Fold the paper toward you three
+        times. Hold it to your heart and actually feel the done-ness of it. Not the hope. The certainty.
+      </SpellStep>
+      <SpellStep n="5" title="Let it burn">
+        Place the folded paper under your candle as it burns. Make sure you do this in a safe place.
+      </SpellStep>
+
+      <SpellBlock title="After the spell">
+        <p style={{ ...st.smallBody, margin: 0 }}>
+          Take one action today from the woman it's already done for. Post the offer. Send the email. Raise the
+          price. Do something she would do, not something you've been waiting to feel ready for. Then drop a 🔮
+          in the group when you've cast yours.
+        </p>
+      </SpellBlock>
+    </div>
+  );
+}
+function SpellBlock({ title, children }) {
+  return (<div style={st.spellBlock}><div style={st.spellBlockTitle}>{title}</div>{children}</div>);
+}
+function SpellStep({ n, title, children }) {
+  return (
+    <div style={st.spellStep}>
+      <div style={st.spellStepHead}><span style={st.spellNum}>{n}</span><span style={st.spellStepTitle}>{title}</span></div>
+      <div style={st.spellStepBody}>{children}</div>
+    </div>
+  );
+}
+
+// ───────────── HYPNOSIS & HEALING ─────────────
+function HypnosisTab() {
+  return (
+    <div>
+      <h3 style={{ ...st.h3, marginTop: 0 }}>Hypnosis &amp; Healing</h3>
+      <p style={st.body}>
+        Your support practices for the month. Use the hypnosis audios to charge your totem and deepen the
+        visualization. Use the EFT and Ho'oponopono whenever resistance comes up around receiving.
+      </p>
+
+      <div style={st.groupLabel}>Hypnosis Audios</div>
+      {HYPNOSIS.map((h, i) => (
+        <div key={i} style={st.audioItem}>
+          <div style={st.audioHead}>
+            <span style={st.audioTitle}>{h.title}</span>
+            <span style={st.audioMeta}>{h.meta}</span>
+          </div>
+          {h.url ? (
+            <audio controls preload="none" style={st.audioPlayer} src={h.url}>
+              Your browser doesn't support audio playback.
+            </audio>
+          ) : (
+            <div style={st.audioMeta}>Link coming soon</div>
+          )}
+        </div>
+      ))}
+
+      <div style={st.groupLabel}>EFT Tapping</div>
+      <p style={{ ...st.smallBody, marginTop: -4 }}>
+        Tap through each point as you say the words out loud. Feel free to change the wording to whatever's true
+        for you. Tap until the charge softens. Tap on each script as often as you need this month.
+      </p>
+
+      <WhatIsTapping />
+
+      <EFTScript
+        name="The Permission to Receive"
+        sub="For when wanting more feels unsafe"
+        setups={[
+          "Even though part of me feels afraid to want this much, I deeply and completely love and accept myself, and I give myself permission to want it anyway.",
+          "Even though wanting more feels greedy, or risky, or like I'm asking to be let down again, I choose to accept where I am and open a little more.",
+          "Even though some part of me learned it was safer to keep my dreams small, I honor that part, and I'm choosing to feel safe wanting the full vision now.",
+        ]}
+        rounds={[
+          { label: "Round 1 · Naming it", lines: [
+            "Eyebrow: All this wanting I've been holding back.",
+            "Side of eye: It feels big to admit how much I actually want.",
+            "Under eye: Part of me thinks it's safer to stay small.",
+            "Under nose: I've talked myself out of the vision so many times.",
+            "Chin: All this fear of wanting and not getting.",
+            "Collarbone: It's felt safer not to hope.",
+            "Under arm: But the wanting hasn't gone anywhere.",
+            "Top of head: It's still here, asking to be felt.",
+          ]},
+          { label: "Round 2 · Shifting it", lines: [
+            "Eyebrow: What if I let myself want it fully.",
+            "Side of eye: What if my desire is allowed.",
+            "Under eye: What if wanting more is safe for me now.",
+            "Under nose: I'm allowed to want a wealthy, beautiful life.",
+            "Chin: My desire is a compass, not a danger.",
+            "Collarbone: I choose to feel safe holding the whole vision.",
+            "Under arm: I let myself want it, claim it, and feel it as mine.",
+            "Top of head: I am safe to dream this big, and I do.",
+          ]},
+        ]}
+      />
+
+      <EFTScript
+        name="It's Safe to Receive"
+        sub="For receiving without earning it first"
+        setups={[
+          "Even though I feel like I have to earn every good thing, work harder, prove more, I deeply and completely accept myself exactly as I am.",
+          "Even though receiving without earning it feels uncomfortable in my body, I choose to let that discomfort soften and let good things in.",
+          "Even though I learned that rest, money, and ease have to be deserved, I'm allowed to receive simply because I exist, and I open to that now.",
+        ]}
+        rounds={[
+          { label: "Round 1 · Naming it", lines: [
+            "Eyebrow: I've been bracing against receiving.",
+            "Side of eye: Always working harder to deserve it.",
+            "Under eye: It's hard to just let good things in.",
+            "Under nose: Part of me thinks I have to earn every dollar of it.",
+            "Chin: Receiving without struggle feels almost wrong.",
+            "Collarbone: I've kept the door half closed.",
+            "Under arm: Holding the abundance at arm's length.",
+            "Top of head: Tired of pushing it away.",
+          ]},
+          { label: "Round 2 · Opening it", lines: [
+            "Eyebrow: What if I don't have to earn it.",
+            "Side of eye: What if I can simply receive.",
+            "Under eye: It's safe to let the good in.",
+            "Under nose: Money and support and ease can flow to me.",
+            "Chin: I open the door all the way.",
+            "Collarbone: I receive with open hands and an open heart.",
+            "Under arm: Abundance flows to me easily and often.",
+            "Top of head: I am safe to receive it all, and I let it in.",
+          ]},
+        ]}
+      />
+
+      <div style={st.groupLabel}>Ho'oponopono · For This Month</div>
+      <div style={{ ...st.softCard, ...st.cardGold }}>
+        <p style={st.smallBody}>
+          Manifestation slows when part of you doesn't believe she's allowed to have it. This practice clears
+          that. Bring to mind the part of you that has doubted, settled, or talked you out of the vision. Place a
+          hand on your heart and speak to her, slowly, four lines, as many rounds as you need:
+        </p>
+        <div style={st.hoBox}>
+          <div style={st.hoLine}>I'm sorry.</div>
+          <div style={st.hoLine}>Please forgive me.</div>
+          <div style={st.hoLine}>Thank you.</div>
+          <div style={st.hoLine}>I love you.</div>
+        </div>
+        <p style={{ ...st.smallBody, marginTop: 14, marginBottom: 0 }}>
+          Say it to the part that gave up on the dream. To the part that called the vision unrealistic. To the
+          part still waiting for proof before she'll believe. You're not scolding her. You're making peace with
+          her so she can come with you. When she stops resisting, the receiving opens.
+        </p>
+      </div>
+    </div>
+  );
+}
+function WhatIsTapping() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={st.eftCard}>
+      <button onClick={() => setOpen((o) => !o)} style={{ ...st.eftHeader, background: "linear-gradient(100deg, #F0E7FA, #FAE9F1)" }}>
+        <span style={st.eftAccent} />
+        <span style={st.eftHeaderText}>
+          <span style={st.eftName}>What is tapping &amp; how to use it</span>
+          <span style={st.eftSub}>Read this first if you're new to EFT</span>
+        </span>
+        <span style={{ ...st.eftChevron, transform: open ? "rotate(180deg)" : "none" }}>⌄</span>
+      </button>
+      {open && (
+        <div style={st.eftBody} className="fade">
+          <p style={st.smallBody}>
+            EFT (Emotional Freedom Technique), or tapping, is gently tapping on a series of points on your body
+            while you say how you feel out loud. It calms your nervous system and helps release the stuck emotion
+            or belief underneath, so the resistance to receiving softens.
+          </p>
+          <div style={st.eftRound}>The points</div>
+          <ol style={st.numList}>
+            <li><strong>Karate chop:</strong> the fleshy outside edge of your hand. This is where you say the setup statements.</li>
+            <li><strong>Eyebrow:</strong> start of the eyebrow, near the nose.</li>
+            <li><strong>Side of eye:</strong> the bone on the outside of your eye.</li>
+            <li><strong>Under eye:</strong> on the bone right under your eye.</li>
+            <li><strong>Under nose:</strong> between your nose and top lip.</li>
+            <li><strong>Chin:</strong> the crease between your lip and chin.</li>
+            <li><strong>Collarbone:</strong> just below where a necklace would sit.</li>
+            <li><strong>Under arm:</strong> about a hand's width below your armpit.</li>
+            <li><strong>Top of head:</strong> the crown.</li>
+          </ol>
+          <div style={st.eftRound}>How to use it</div>
+          <ol style={st.numList}>
+            <li>Rate how strong the feeling is right now, 0 to 10.</li>
+            <li>Tap the karate chop point while saying each setup statement out loud.</li>
+            <li>Move through the points in order, tapping about 5 to 7 times on each while saying the line.</li>
+            <li>Do both rounds. Take a breath at the end.</li>
+            <li>Rate the feeling again. If it's still high, run it once more. You're tapping until it softens.</li>
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Rating({ label, value, onChange }) {
+  return (
+    <div style={st.rating}>
+      <div style={st.ratingLabel}>{label}</div>
+      <div style={st.ratingScale}>
+        {[0,1,2,3,4,5,6,7,8,9,10].map((n) => (
+          <button key={n} onClick={() => onChange(n)} style={{ ...st.ratingDot, ...(value === n ? st.ratingDotOn : {}) }}>{n}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EFTScript({ name, sub, setups, rounds }) {
+  const [open, setOpen] = useState(false);
+  const [before, setBefore] = useState(null);
+  const [after, setAfter] = useState(null);
+  return (
+    <div style={st.eftCard}>
+      <button onClick={() => setOpen((o) => !o)} style={st.eftHeader}>
+        <span style={st.eftAccent} />
+        <span style={st.eftHeaderText}>
+          <span style={st.eftName}>{name}</span>
+          <span style={st.eftSub}>{sub}</span>
+        </span>
+        <span style={{ ...st.eftChevron, transform: open ? "rotate(180deg)" : "none" }}>⌄</span>
+      </button>
+      {open && (
+        <div style={st.eftBody} className="fade">
+          <Rating label="Before you begin, how strong is the feeling? (0 = none, 10 = intense)" value={before} onChange={setBefore} />
+          <div style={st.eftRound}>Karate chop · say each one, tapping the side of your hand</div>
+          {setups.map((sLine, i) => <div key={i} style={st.eftSetup}>{sLine}</div>)}
+          {rounds.map((r, i) => (
+            <div key={i} style={{ marginTop: 14 }}>
+              <div style={st.eftRound}>{r.label}</div>
+              {r.lines.map((l, j) => {
+                const [pt, ...rest] = l.split(":");
+                return (
+                  <div key={j} style={st.eftLine}>
+                    <span style={st.eftPoint}>{pt}:</span>{rest.join(":")}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <Rating label="Now check again. Where's the feeling now? (run it again if it's still high)" value={after} onChange={setAfter} />
+          {before !== null && after !== null && after < before && (
+            <div style={st.ratingShift}>You shifted it down {before - after} {before - after === 1 ? "point" : "points"} ✦</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ───────────── PULL A CARD ─────────────
+function OracleTab() {
+  const [trio, setTrio] = useState(() => drawThree());
+  const [chosen, setChosen] = useState(null);
+  const [imgError, setImgError] = useState(false);
+  function drawThree() {
+    const idx = [];
+    while (idx.length < 3) {
+      const r = Math.floor(Math.random() * ORACLE_DECK.length);
+      if (!idx.includes(r)) idx.push(r);
+    }
+    return idx;
+  }
+  const reshuffle = () => { setChosen(null); setImgError(false); setTrio(drawThree()); };
+  const card = chosen !== null ? ORACLE_DECK[trio[chosen]] : null;
+
+  return (
+    <div style={st.centerTab}>
+      <h3 style={{ ...st.h3, marginTop: 0 }}>Pull a Card</h3>
+      <p style={st.body}>
+        Take a breath and bring your question or your vision to mind. When you feel ready, choose the card that's
+        calling you. Let it answer.
+      </p>
+
+      {!card && (
+        <>
+          <div style={st.cardRow}>
+            {trio.map((_, i) => (
+              <button key={i} onClick={() => setChosen(i)} style={st.cardBack} className="card-back">
+                <img src={COVER_IMAGES[i]} alt="" style={st.cardBackImg}
+                  onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+                <span style={{ ...st.cardBackFallback, display: "none" }}>✦</span>
+              </button>
+            ))}
+          </div>
+          <p style={st.notFit}>Three cards drawn from the deck of thirty-one. Choose with your gut.</p>
+        </>
+      )}
+
+      {card && (
+        <div className="fade">
+          {!imgError ? (
+            <img src={CARD_IMG_BASE + card.slug + ".png"} alt={card.title} style={st.cardImg} onError={() => setImgError(true)} />
+          ) : (
+            <div style={st.cardImgFallback}><span style={st.cardBackGlyph}>✦</span></div>
+          )}
+          <div style={st.cardName}>{card.title}</div>
+          <p style={st.cardDesc}>{card.desc}</p>
+          <div style={st.cardSection}>
+            <div style={st.cardSectionLabel}>The deeper meaning</div>
+            <p style={st.cardSectionBody}>{card.meaning}</p>
+          </div>
+          <div style={st.cardSection}>
+            <div style={st.cardSectionLabel}>Why you pulled this</div>
+            <p style={st.cardSectionBody}>{card.why}</p>
+          </div>
+          <button style={st.linkBtn} onClick={reshuffle}>Reshuffle &amp; pull again ✦</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ───────────── ORDER FROM THE UNIVERSE ─────────────
+function GridTab({ orders, setOrders }) {
+  const [text, setText] = useState("");
+  const [burst, setBurst] = useState(false);
+  const today = todayKey();
+
+  const addOrder = () => {
+    const t = text.trim(); if (!t) return;
+    setOrders((o) => [...o, { id: Date.now() + Math.random(), text: t, placed: today, done: false, doneDate: null }]);
+    setText("");
+  };
+  const toggle = (id) => {
+    setOrders((o) => o.map((x) => {
+      if (x.id !== id) return x;
+      const nowDone = !x.done;
+      if (nowDone) { setBurst(true); setTimeout(() => setBurst(false), 1600); }
+      return { ...x, done: nowDone, doneDate: nowDone ? today : null };
+    }));
+  };
+  const remove = (id) => setOrders((o) => o.filter((x) => x.id !== id));
+
+  const open = orders.filter((o) => !o.done);
+  const manifested = orders.filter((o) => o.done);
+
+  return (
+    <div>
+      {burst && <Confetti />}
+      <h3 style={{ ...st.h3, marginTop: 0 }}>Order from the Universe</h3>
+      <p style={st.body}>
+        Place a specific order. Not a vague wish, a clear request, written as if it's already on its way to you.
+        Come back daily to read your orders and tune in. When one arrives, check it off and watch it move to
+        what's been manifested. This is your proof that it works.
+      </p>
+
+      <div style={st.exampleBox}>
+        <div style={st.exampleLabel}>How to place an order</div>
+        <div style={st.exampleLine}>"A new 1:1 client at my full rate by the end of the month."</div>
+        <div style={st.exampleLine}>"An unexpected $500 finds its way to me."</div>
+        <div style={st.exampleLine}>"Five new members in my membership this month."</div>
+      </div>
+
+      <div style={st.addRow}>
+        <input style={st.input} value={text} placeholder="What are you ordering from the universe?"
+          onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addOrder()} />
+        <button style={st.btn} onClick={addOrder}>Place order 🌠</button>
+      </div>
+
+      {open.length === 0 && manifested.length === 0 && (
+        <p style={st.emptyMsg}>No orders placed yet. Be specific, be certain, and write it as if it's already yours.</p>
+      )}
+
+      {open.length > 0 && (
+        <>
+          <div style={st.miniLabel}>And so it is... and so it shall be</div>
+          <ul style={st.list}>
+            {open.map((o) => (
+              <li key={o.id} style={st.orderItem}>
+                <button style={st.orderCheck} onClick={() => toggle(o.id)} title="Mark as manifested" />
+                <span style={st.listText}>{o.text}</span>
+                <button style={st.removeBtn} onClick={() => remove(o.id)}>×</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {manifested.length > 0 && (
+        <>
+          <div style={{ ...st.miniLabel, marginTop: 18 }}>Manifested ✦ {manifested.length}</div>
+          <ul style={st.list}>
+            {manifested.map((o) => (
+              <li key={o.id} style={{ ...st.orderItem, ...st.orderItemDone }}>
+                <button style={{ ...st.orderCheck, ...st.orderCheckOn }} onClick={() => toggle(o.id)} title="Manifested">✓</button>
+                <span style={st.orderTextDone}>{o.text}</span>
+                <button style={st.removeBtn} onClick={() => remove(o.id)}>×</button>
+              </li>
+            ))}
+          </ul>
+          <p style={st.notFit}>Every check is proof. Read this list when doubt creeps in.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Confetti() {
+  const bits = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
+    id: i, left: Math.random() * 100, delay: Math.random() * 0.3, dur: 1 + Math.random() * 0.8,
+    color: [C.pink, C.teal, C.gradMid, C.gradStart, C.purple][i % 5], rot: Math.random() * 360,
+  })), []);
+  return (
+    <div style={st.confettiLayer} aria-hidden>
+      {bits.map((b) => (
+        <span key={b.id} className="confetti-bit" style={{
+          left: `${b.left}%`, background: b.color, animationDelay: `${b.delay}s`, animationDuration: `${b.dur}s`,
+          transform: `rotate(${b.rot}deg)`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ───────────── ABUNDANCE JAR ─────────────
+function JarTab({ gems, entry, setEntry, addGem, removeGem, justAdded }) {
+  return (
+    <div>
+      <h3 style={{ ...st.h3, marginTop: 0 }}>Your Abundance Jar</h3>
+      <p style={st.body}>
+        As you dream it into being, the proof starts arriving. Money, a gift, an unexpected yes, a kindness you
+        let in. Log it, and watch a gem drop in. Every gem tells your body the same thing: it's working, and it's
+        safe to receive.
+      </p>
+      <div style={st.jarStage}>
+        <Jar gems={gems} pulse={justAdded} />
+        <div style={st.count}><span style={st.countNum}>{gems.length}</span><span style={st.countLabel}>{gems.length === 1 ? "gem received" : "gems received"}</span></div>
+      </div>
+      <div style={st.addRow}>
+        <input style={st.input} value={entry} placeholder="What did you receive?" onChange={(e) => setEntry(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addGem()} />
+        <button style={st.btn} onClick={addGem}>Drop a gem ✦</button>
+      </div>
+      {gems.length === 0 ? (
+        <p style={st.emptyMsg}>Nothing logged yet. The first gem is the hardest, because it asks you to admit you received something.</p>
+      ) : (
+        <ul style={st.list}>
+          {[...gems].reverse().map((g) => (
+            <li key={g.id} style={st.listItem}>
+              <span style={{ ...st.gemDot, background: g.color }} />
+              <span style={st.listText}>{g.text}</span>
+              <span style={st.listDate}>{prettyDate(g.date)}</span>
+              <button style={st.removeBtn} onClick={() => removeGem(g.id)}>×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ───────────── SHARED ─────────────
+function Pillar({ glyph, name, children }) {
+  return (
+    <div style={st.pillar}>
+      <div style={st.pillarHead}><span style={st.pillarGlyph}>{glyph}</span><span style={st.pillarName}>{name}</span></div>
+      <p style={st.pillarBody}>{children}</p>
+    </div>
+  );
+}
+
+function Jar({ gems, pulse }) {
+  const W = 240, H = 300;
+  const left = 56, right = 184, top = 92, bottom = 268;
+  const innerW = right - left, perRow = 6;
+  const positions = gems.map((g, i) => {
+    const row = Math.floor(i / perRow), col = i % perRow;
+    const jx = ((g.id * 13) % 10) - 5, jy = ((g.id * 7) % 8) - 4;
+    return { ...g, x: left + 13 + col * (innerW / perRow) + jx, y: Math.max(top + 12, bottom - 14 - row * 20 + jy) };
+  });
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 230, maxWidth: "100%" }}>
+      <defs>
+        <linearGradient id="jglass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.5" />
+          <stop offset="50%" stopColor="#fff" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#fff" stopOpacity="0.3" />
+        </linearGradient>
+        <radialGradient id="jglow" cx="50%" cy="58%" r="60%">
+          <stop offset="0%" stopColor={C.purple} stopOpacity="0.45" />
+          <stop offset="60%" stopColor={C.lilac} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={C.lilac} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="lid" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={C.gold} /><stop offset="100%" stopColor={C.goldSoft} />
+        </linearGradient>
+      </defs>
+      <ellipse cx={W / 2} cy={185} rx={84 + Math.min(gems.length * 2, 40)} ry={114 + Math.min(gems.length, 30)} fill="url(#jglow)" style={{ transition: "all .6s ease" }} />
+      <rect x="72" y="60" width="96" height="20" rx="7" fill="url(#lid)" />
+      <rect x="80" y="55" width="80" height="11" rx="5" fill={C.gold} />
+      <ellipse cx={W / 2} cy="60" rx="48" ry="6" fill="#fff" fillOpacity="0.3" />
+      <path d="M50 92 Q50 82 62 82 L178 82 Q190 82 190 92 L186 264 Q186 278 170 278 L70 278 Q54 278 50 264 Z" fill="url(#jglass)" stroke={C.gold} strokeWidth="2.5" strokeOpacity="0.6" />
+      {positions.map((g) => (
+        <g key={g.id} className="gem-pop">
+          <circle cx={g.x} cy={g.y} r="8.5" fill={g.color} stroke="#fff" strokeOpacity="0.6" strokeWidth="1"><title>{g.text}</title></circle>
+          <circle cx={g.x - 2.5} cy={g.y - 2.5} r="2" fill="#fff" fillOpacity="0.7" />
+        </g>
+      ))}
+      <path d="M66 100 Q62 180 72 264" stroke="#fff" strokeOpacity="0.4" strokeWidth="5" strokeLinecap="round" fill="none" />
+      {pulse && <circle cx={W / 2} cy={185} r="56" fill="none" stroke={C.pink} strokeWidth="2" className="pulse-ring" />}
+    </svg>
+  );
+}
+
+// Decorative amethyst crystal cluster
+function Crystals({ flip }) {
+  return (
+    <svg viewBox="0 0 120 140" style={{ width: "100%", height: "100%", transform: flip ? "scaleX(-1)" : "none" }} aria-hidden>
+      <defs>
+        <linearGradient id="cr1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#C9A9E8" /><stop offset="100%" stopColor="#7B3FA0" />
+        </linearGradient>
+        <linearGradient id="cr2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#E0CCF2" /><stop offset="100%" stopColor="#9B6FC4" />
+        </linearGradient>
+        <linearGradient id="cr3" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#B79CD9" /><stop offset="100%" stopColor="#5B2A86" />
+        </linearGradient>
+      </defs>
+      <polygon points="40,140 28,70 50,55 60,140" fill="url(#cr3)" stroke="#fff" strokeOpacity="0.25" />
+      <polygon points="60,140 50,48 72,40 82,140" fill="url(#cr1)" stroke="#fff" strokeOpacity="0.3" />
+      <polygon points="50,55 50,48 60,52 56,62" fill="#EBDCF7" fillOpacity="0.8" />
+      <polygon points="78,140 74,82 92,72 100,140" fill="url(#cr2)" stroke="#fff" strokeOpacity="0.3" />
+      <polygon points="74,82 92,72 88,80 76,90" fill="#F0E5FA" fillOpacity="0.7" />
+      <polygon points="22,140 18,95 34,88 40,140" fill="url(#cr2)" stroke="#fff" strokeOpacity="0.25" />
+    </svg>
+  );
+}
+
+// Decorative lavender sprig
+function Lavender({ flip }) {
+  return (
+    <svg viewBox="0 0 70 150" style={{ width: "100%", height: "100%", transform: flip ? "scaleX(-1)" : "none" }} aria-hidden>
+      <g stroke="#8FAE5D" strokeWidth="2.5" fill="none" strokeLinecap="round">
+        <path d="M35 150 L35 50" />
+        <path d="M35 95 L20 78" /><path d="M35 105 L52 86" /><path d="M35 118 L22 104" /><path d="M35 128 L50 116" />
+      </g>
+      {[[35, 30], [28, 42], [42, 42], [30, 56], [40, 56], [35, 48]].map(([cx, cy], i) => (
+        <g key={i}>
+          <ellipse cx={cx} cy={cy} rx="6" ry="9" fill="#9B6FC4" />
+          <ellipse cx={cx} cy={cy - 2} rx="4" ry="6" fill="#C9A9E8" fillOpacity="0.8" />
+        </g>
+      ))}
+      <ellipse cx="35" cy="22" rx="5" ry="8" fill="#B79CD9" />
+    </svg>
+  );
+}
+
+// Small hibiscus-style flower
+function Flower({ size = 60 }) {
+  return (
+    <svg viewBox="0 0 80 80" style={{ width: size, height: size }} aria-hidden>
+      <defs>
+        <radialGradient id="petal" cx="50%" cy="60%" r="60%">
+          <stop offset="0%" stopColor="#F7B8D2" /><stop offset="100%" stopColor="#E84F8A" />
+        </radialGradient>
+      </defs>
+      {[0, 72, 144, 216, 288].map((deg, i) => (
+        <ellipse key={i} cx="40" cy="22" rx="11" ry="18" fill="url(#petal)" stroke="#fff" strokeOpacity="0.3"
+          transform={`rotate(${deg} 40 40)`} />
+      ))}
+      <circle cx="40" cy="40" r="8" fill="#E3C766" />
+      <circle cx="40" cy="40" r="4" fill="#C9A227" />
+    </svg>
+  );
+}
+
+function Shimmer() {
+  const dots = useMemo(() => Array.from({ length: 22 }, (_, i) => ({
+    id: i, left: Math.random() * 100, top: Math.random() * 100,
+    size: 2 + Math.random() * 3, delay: Math.random() * 8, dur: 5 + Math.random() * 5,
+    color: i % 3 === 0 ? C.pink : i % 3 === 1 ? C.teal : C.purple,
+  })), []);
+  return (
+    <div style={st.shimmerLayer} aria-hidden>
+      {dots.map((d) => (
+        <span key={d.id} className="shimmer-dot" style={{
+          left: `${d.left}%`, top: `${d.top}%`, width: d.size, height: d.size,
+          background: d.color, animationDelay: `${d.delay}s`, animationDuration: `${d.dur}s`,
+          boxShadow: `0 0 ${d.size * 2.5}px ${d.color}`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+const css = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap');
+* { box-sizing: border-box; }
+.fade { animation: fade .45s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.gem-pop { animation: pop .55s cubic-bezier(.34,1.56,.64,1); transform-origin: center; }
+@keyframes pop { 0% { transform: scale(0) translateY(-26px); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.pulse-ring { animation: ring 1s ease-out forwards; }
+@keyframes ring { 0% { r: 30; opacity: .6; } 100% { r: 96; opacity: 0; } }
+.shimmer-dot { position: absolute; border-radius: 50%; opacity: 0; animation-name: shimmer; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+@keyframes shimmer { 0%, 100% { opacity: 0; transform: scale(.6); } 50% { opacity: .7; transform: scale(1); } }
+button { font-family: 'Inter', sans-serif; cursor: pointer; transition: all .2s ease; }
+button:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.confetti-bit { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation-name: confetti-fall; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+@keyframes confetti-fall { 0% { opacity: 1; top: -12px; } 100% { opacity: 0; top: 100vh; } }
+a { text-decoration: none; }
+.card-back { transition: transform .25s ease, box-shadow .25s ease; }
+.card-back:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 16px 34px rgba(59,31,94,.4) !important; }
+.card-back::after { content: ""; position: absolute; inset: 6px; border-radius: 11px; border: 1px solid rgba(227,199,102,0.4); pointer-events: none; }
+input::placeholder, textarea::placeholder { color: ${C.inkSoft}; opacity: .6; }
+input:focus, textarea:focus { outline: none; border-color: ${C.purple} !important; }
+::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-thumb { background: ${C.lilac}; border-radius: 8px; }
+@media (max-width: 720px) {
+  .dib-layout { flex-direction: column !important; }
+  .dib-nav { flex-direction: row !important; flex-wrap: wrap !important; position: sticky !important; top: 52px !important; flex: none !important; width: auto !important; justify-content: center; z-index: 10; background: rgba(251,248,255,0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 14px; margin: 0 -6px; }
+  .dib-tab { flex: 0 0 auto !important; width: auto !important; }
+}
+`;
+
+const st = {
+  page: { position: "relative", fontFamily: "'Inter', sans-serif", color: C.ink, minHeight: "100vh", padding: "0 14px", overflow: "hidden",
+    background: BG_IMAGE
+      ? `linear-gradient(180deg, rgba(235,223,247,0.5), rgba(217,199,236,0.5)), url(${BG_IMAGE}) center top / cover fixed no-repeat`
+      : `linear-gradient(165deg, #EBDFF7 0%, #E3D4F2 30%, #D9C7EC 60%, #CDB6E4 100%)` },
+  shimmerLayer: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 },
+  topbar: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "12px 20px", margin: "0 -14px 0", background: "rgba(251,248,255,0.82)", backdropFilter: "blur(12px)",
+    borderBottom: `1px solid ${C.lilac}` },
+  topbarTitle: { fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600,
+    background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" },
+  topbarMonth: { fontSize: 12, letterSpacing: 2, color: C.purple, fontWeight: 600, textTransform: "uppercase" },
+  cornerBL: { position: "fixed", bottom: -10, left: -6, width: 110, height: 130, opacity: 0.5, zIndex: 0, pointerEvents: "none" },
+  cornerBR: { position: "fixed", bottom: -10, right: -6, width: 110, height: 130, opacity: 0.5, zIndex: 0, pointerEvents: "none" },
+  heroBotanicals: { position: "absolute", inset: 0, pointerEvents: "none" },
+  heroLav: { position: "absolute", left: "2%", top: 10, width: 46, height: 100, opacity: 0.65 },
+  heroLavR: { position: "absolute", right: "2%", top: 10, width: 46, height: 100, opacity: 0.65 },
+  heroFlower: { display: "flex", justifyContent: "center", margin: "0 0 12px" },
+  frame: { position: "relative", zIndex: 1, maxWidth: 1140, margin: "0 auto", padding: "28px 0 52px" },
+  hero: { position: "relative", textAlign: "center", marginBottom: 30 },
+  kicker: { fontSize: 12, letterSpacing: 4, color: C.purple, fontWeight: 600, marginBottom: 14 },
+  title: { fontFamily: "'Fraunces', serif", fontSize: 60, fontWeight: 500, margin: "0 0 12px", lineHeight: 1.18, paddingBottom: "0.12em",
+    background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+    filter: "drop-shadow(0 2px 18px rgba(155,111,196,.18))" },
+  monthLine: { fontFamily: "'Fraunces', serif", fontSize: 19, color: C.plum, fontWeight: 500, margin: "0 auto 10px", maxWidth: 720, lineHeight: 1.5 },
+  tagline: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 20, color: C.plum, maxWidth: 680, margin: "0 auto", lineHeight: 1.5 },
+  layout: { display: "flex", gap: 22, alignItems: "flex-start" },
+  nav: { display: "flex", flexDirection: "column", gap: 8, flex: "0 0 220px", position: "sticky", top: 64, alignSelf: "flex-start", zIndex: 10 },
+  tab: { display: "flex", alignItems: "center", gap: 11, background: "rgba(255,255,255,0.55)", color: C.plum,
+    fontSize: 14, fontWeight: 500, padding: "13px 16px", borderRadius: 14, backdropFilter: "blur(6px)", textAlign: "left", width: "100%",
+    border: `1px solid ${C.lilac}` },
+  tabActive: { background: GRAD, color: "#fff", fontWeight: 600,
+    boxShadow: "0 6px 20px rgba(155,111,196,.4)", border: "1px solid rgba(255,255,255,0.4)" },
+  tabGlyph: { fontSize: 17 },
+  panel: { flex: 1, minWidth: 0, background: "linear-gradient(160deg, #FFFFFF 0%, #FBF6FF 55%, #F6EDFB 100%)", borderRadius: 24, padding: "36px 44px",
+    border: "1px solid rgba(255,255,255,0.6)", boxShadow: "0 18px 50px rgba(123,63,160,.18)" },
+  welcome: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 22, color: C.plum, margin: "0 0 14px", lineHeight: 1.4 },
+  body: { fontSize: 16, lineHeight: 1.7, color: C.ink, margin: "0 0 18px" },
+  smallBody: { fontSize: 14.5, lineHeight: 1.7, color: C.inkSoft, margin: "0 0 14px" },
+  numList: { margin: "0 0 14px", paddingLeft: 20, color: C.ink, fontSize: 14, lineHeight: 1.75 },
+  exampleBox: { background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)", borderRadius: 12, padding: "14px 16px", margin: "0 0 14px", border: `1px solid ${C.lilac}` },
+  exampleLabel: { fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: C.purple, fontWeight: 700, marginBottom: 8 },
+  exampleLine: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 14.5, color: C.plum, lineHeight: 1.6, marginBottom: 6 },
+  practiceNote: { fontSize: 14, lineHeight: 1.7, color: C.ink, background: "#fff", borderRadius: 12, padding: "13px 15px", margin: "0 0 14px", borderLeft: `3px solid ${C.pink}` },
+  rating: { margin: "6px 0 14px" },
+  ratingLabel: { fontSize: 13, color: C.plum, fontWeight: 600, marginBottom: 8, lineHeight: 1.4 },
+  ratingScale: { display: "flex", gap: 5, flexWrap: "wrap" },
+  ratingDot: { width: 30, height: 30, borderRadius: "50%", border: `1.5px solid ${C.lilac}`, background: "#fff", color: C.purple, fontSize: 13, fontWeight: 600, flexShrink: 0 },
+  ratingDotOn: { background: GRAD, color: "#fff", borderColor: "transparent", boxShadow: "0 3px 10px rgba(232,79,138,.3)" },
+  ratingShift: { marginTop: 12, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16, color: C.pink },
+  h3: { fontFamily: "'Fraunces', serif", fontSize: 26, fontWeight: 500, margin: "30px 0 16px",
+    background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block" },
+  callout: { background: `linear-gradient(135deg, ${C.lilacSoft}, #F3ECFB)`, borderRadius: 16, padding: "20px 22px", margin: "4px 0 8px",
+    border: `1px solid ${C.lilac}` },
+  calloutTitle: { fontFamily: "'Fraunces', serif", fontSize: 21, color: C.plum, marginBottom: 8 },
+  calloutBody: { fontSize: 14.5, lineHeight: 1.7, color: C.ink, margin: 0 },
+  pillar: { marginBottom: 18, paddingLeft: 16, borderLeft: `3px solid ${C.gold}` },
+  pillarHead: { display: "flex", alignItems: "center", gap: 9, marginBottom: 7 },
+  pillarGlyph: { fontSize: 20 },
+  pillarName: { fontFamily: "'Fraunces', serif", fontSize: 20, color: C.royal },
+  pillarBody: { fontSize: 14.5, lineHeight: 1.7, color: C.inkSoft, margin: 0 },
+  eventList: { display: "flex", flexDirection: "column" },
+  eventRow: { display: "flex", gap: 13, padding: "15px 0", borderBottom: `1px solid ${C.lilacSoft}`, alignItems: "flex-start" },
+  eventGlyph: { fontSize: 21, flexShrink: 0 },
+  eventTitle: { fontFamily: "'Fraunces', serif", fontSize: 16.5, marginBottom: 4, color: C.royal },
+  eventDesc: { fontSize: 13.5, lineHeight: 1.6, color: C.inkSoft },
+  stepHead: { display: "flex", alignItems: "center", gap: 11, fontFamily: "'Fraunces', serif", fontSize: 21, color: C.royal, margin: "26px 0 12px" },
+  stepPill: { fontFamily: "'Inter', sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, color: "#fff",
+    background: GRAD, padding: "5px 12px", borderRadius: 20 },
+  softCard: { borderRadius: 16, padding: 20, border: `1px solid ${C.lilac}` },
+  cardLilac: { background: "#F4EDFB" },
+  cardGold: { background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)", border: `1px solid ${C.lilac}` },
+  cardPlum: { background: `linear-gradient(135deg, ${C.plum}, ${C.purple})`, border: "none" },
+  miniKicker: { fontSize: 11, letterSpacing: 2, color: C.goldSoft, fontWeight: 600, marginBottom: 10 },
+  textarea: { width: "100%", minHeight: 110, padding: "13px 15px", borderRadius: 12, border: `1.5px solid ${C.lilac}`, fontSize: 14, lineHeight: 1.6, fontFamily: "'Inter', sans-serif", resize: "vertical", background: "#fff", color: C.ink },
+  rowBetween: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, marginTop: 12, flexWrap: "wrap" },
+  btn: { background: GRAD, color: "#fff", border: "none", borderRadius: 12, padding: "12px 22px", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", boxShadow: "0 6px 18px rgba(155,111,196,.32)" },
+  streak: { fontSize: 13, color: C.pink, fontWeight: 600 },
+  ritualCard: { background: "#fff", borderRadius: 14, padding: "16px 18px", marginBottom: 10, border: `1px solid ${C.lilacSoft}`, boxShadow: "0 4px 14px rgba(59,31,94,.06)" },
+  ritualHead: { display: "flex", alignItems: "center", gap: 12, marginBottom: 7 },
+  ritualGlyph: { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "50%", color: "#fff", fontSize: 16, flexShrink: 0, boxShadow: "0 3px 10px rgba(59,31,94,.2)" },
+  ritualTitle: { fontFamily: "'Fraunces', serif", fontSize: 18, color: C.royal },
+  ritualBody: { fontSize: 14.5, lineHeight: 1.7, color: C.inkSoft, margin: 0, paddingLeft: 48 },
+  doneBadge: { marginTop: 6, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16, color: C.pink },
+  groupLabel: { fontFamily: "'Fraunces', serif", fontSize: 18, color: C.plum, margin: "24px 0 12px", display: "flex", alignItems: "center", gap: 8 },
+  audioItem: { display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}`, marginBottom: 8, boxShadow: "0 3px 10px rgba(59,31,94,.05)" },
+  audioHead: { display: "flex", flexDirection: "column", gap: 2 },
+  audioPlayer: { width: "100%", height: 38 },
+  playGlyph: { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "50%", background: GRAD, color: "#fff", fontSize: 11, flexShrink: 0 },
+  audioTitle: { fontSize: 14.5, fontWeight: 600, color: C.royal, marginBottom: 2 },
+  audioMeta: { fontSize: 12.5, color: C.inkSoft },
+  eftCard: { background: "#fff", borderRadius: 14, border: `1px solid ${C.lilac}`, marginBottom: 10, overflow: "hidden", boxShadow: "0 4px 14px rgba(123,63,160,.07)" },
+  eftHeader: { display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", background: "linear-gradient(100deg, #F7F0FC, #FBEFF5)", border: "none", padding: "15px 16px" },
+  eftAccent: { width: 5, alignSelf: "stretch", borderRadius: 4, background: GRAD, flexShrink: 0 },
+  eftHeaderText: { flex: 1, display: "flex", flexDirection: "column", gap: 2 },
+  eftName: { fontFamily: "'Fraunces', serif", fontSize: 18, color: C.royal },
+  eftSub: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 13.5, color: C.purple },
+  eftChevron: { fontSize: 20, color: C.purple, transition: "transform .25s ease", flexShrink: 0, lineHeight: 1 },
+  eftBody: { padding: "4px 18px 18px" },
+  eftRound: { fontSize: 11.5, fontWeight: 700, letterSpacing: 0.8, color: C.pink, textTransform: "uppercase", margin: "12px 0 8px" },
+  eftSetup: { fontSize: 14, lineHeight: 1.65, color: C.ink, fontStyle: "italic", background: "#F3ECFB", borderRadius: 10, padding: "10px 13px", marginBottom: 7, borderLeft: `3px solid ${C.purple}` },
+  eftLine: { fontSize: 14, lineHeight: 1.7, color: C.ink, paddingLeft: 12, borderLeft: `2px solid ${C.lilac}`, marginBottom: 4 },
+  eftPoint: { fontWeight: 600, color: C.plum, marginRight: 4 },
+  hoBox: { background: "#fff", borderRadius: 12, padding: "18px 20px", textAlign: "center", border: `1px solid ${C.goldSoft}` },
+  hoLine: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 19, color: C.plum, lineHeight: 1.7 },
+  centerTab: { textAlign: "center", padding: "10px 0" },
+  bigGlyph: { fontSize: 54, marginBottom: 6 },
+  cardRow: { display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", margin: "16px 0 6px" },
+  cardBack: { width: 210, height: 294, borderRadius: 18, border: `2px solid ${C.goldSoft}`, cursor: "pointer",
+    padding: 0, display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 10px 28px rgba(59,31,94,.34)", position: "relative", overflow: "hidden", background: `linear-gradient(155deg, ${C.plum}, ${C.royal})` },
+  cardBackImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  cardBackFallback: { position: "absolute", inset: 0, alignItems: "center", justifyContent: "center", fontSize: 30, color: C.goldSoft, opacity: 0.9 },
+  cardBackGlyph: { fontSize: 30, color: C.goldSoft, opacity: 0.9 },
+  cardImg: { width: "100%", maxWidth: 360, aspectRatio: "5 / 7", objectFit: "cover", borderRadius: 18, margin: "0 auto 18px", display: "block",
+    border: `2px solid ${C.goldSoft}`, boxShadow: "0 16px 44px rgba(123,63,160,.3)" },
+  cardImgFallback: { width: "100%", maxWidth: 360, aspectRatio: "5 / 7", borderRadius: 18, margin: "0 auto 18px",
+    display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(155deg, ${C.plum}, ${C.royal})`,
+    border: `2px solid ${C.goldSoft}`, boxShadow: "0 16px 44px rgba(123,63,160,.3)" },
+  cardName: { fontFamily: "'Fraunces', serif", fontSize: 30, fontWeight: 500, marginBottom: 8,
+    background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" },
+  cardDesc: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 17, lineHeight: 1.5, color: C.plum, margin: "0 0 20px", maxWidth: 520, marginLeft: "auto", marginRight: "auto" },
+  cardSection: { textAlign: "left", background: "linear-gradient(165deg, #FFFFFF, #FBF1F7)", borderRadius: 14, padding: "16px 18px", margin: "0 0 12px", border: `1px solid ${C.lilac}` },
+  cardSectionLabel: { fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: C.pink, fontWeight: 700, marginBottom: 8 },
+  cardSectionBody: { fontSize: 15, lineHeight: 1.7, color: C.ink, margin: 0 },
+  linkBtn: { display: "inline-block", background: GRAD, color: "#fff", borderRadius: 14, padding: "15px 30px", fontSize: 15, fontWeight: 600, boxShadow: "0 8px 24px rgba(232,79,138,.35)", margin: "6px 0" },
+  placeholderBtn: { display: "inline-block", background: "#F4EDFB", color: C.inkSoft, border: `1.5px dashed ${C.lilac}`, borderRadius: 14, padding: "15px 30px", fontSize: 15, fontWeight: 500, margin: "6px 0" },
+  jarStage: { display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 0 6px",
+    background: `radial-gradient(ellipse at center, ${C.lilacSoft}, transparent 70%)`, borderRadius: 20, marginBottom: 18 },
+  count: { textAlign: "center" },
+  countNum: { fontFamily: "'Fraunces', serif", fontSize: 36, display: "block", lineHeight: 1,
+    background: GRAD_TEXT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" },
+  countLabel: { fontSize: 12, color: C.inkSoft },
+  addRow: { display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" },
+  input: { flex: 1, minWidth: 180, padding: "13px 16px", borderRadius: 12, border: `1.5px solid ${C.lilac}`, fontSize: 14, fontFamily: "'Inter', sans-serif", background: "#fff", color: C.ink },
+  list: { listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 7, maxHeight: 300, overflowY: "auto" },
+  miniLabel: { fontSize: 11, letterSpacing: 2, color: C.purple, fontWeight: 700, textTransform: "uppercase", margin: "4px 0 10px" },
+  spellBlock: { background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)", borderRadius: 14, padding: "16px 18px", margin: "16px 0", border: `1px solid ${C.lilac}` },
+  spellBlockTitle: { fontFamily: "'Fraunces', serif", fontSize: 18, color: C.plum, marginBottom: 8 },
+  spellList: { margin: 0, paddingLeft: 20, color: C.ink, fontSize: 14.5, lineHeight: 1.8 },
+  spellStep: { marginBottom: 18 },
+  spellStepHead: { display: "flex", alignItems: "center", gap: 11, marginBottom: 8 },
+  spellNum: { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: "50%", background: GRAD, color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0 },
+  spellStepTitle: { fontFamily: "'Fraunces', serif", fontSize: 19, color: C.royal },
+  spellStepBody: { fontSize: 15, lineHeight: 1.75, color: C.inkSoft, paddingLeft: 39 },
+  spellSub: { background: "#fff", borderRadius: 12, padding: "14px 16px", margin: "12px 0", border: `1px solid ${C.lilacSoft}`, fontSize: 14, lineHeight: 1.9, color: C.ink },
+  incantation: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 16, lineHeight: 1.8, color: C.plum, background: "#fff", borderRadius: 12, padding: "16px 18px", margin: "12px 0", borderLeft: `3px solid ${C.purple}` },
+  orderItem: { display: "flex", alignItems: "center", gap: 12, padding: "13px 15px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}` },
+  orderItemDone: { background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)" },
+  orderCheck: { width: 24, height: 24, borderRadius: "50%", border: `2px solid ${C.purple}`, background: "#fff", flexShrink: 0, cursor: "pointer", color: "#fff", fontSize: 13, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0 },
+  orderCheckOn: { background: GRAD, borderColor: "transparent" },
+  orderTextDone: { flex: 1, fontSize: 14, color: C.inkSoft, textDecoration: "line-through" },
+  confettiLayer: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 50, overflow: "hidden" },
+  listItem: { display: "flex", alignItems: "center", gap: 11, padding: "12px 14px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}` },
+  gemDot: { width: 14, height: 14, borderRadius: "50%", flexShrink: 0, boxShadow: "0 1px 4px rgba(0,0,0,.14)" },
+  blessingDot: { color: C.purple, fontSize: 14, flexShrink: 0 },
+  listText: { flex: 1, fontSize: 14, color: C.ink },
+  listDate: { fontSize: 12, color: C.inkSoft, flexShrink: 0 },
+  removeBtn: { border: "none", background: "transparent", color: C.inkSoft, fontSize: 19, lineHeight: 1, padding: "0 4px", flexShrink: 0 },
+  notFit: { fontSize: 13, fontStyle: "italic", color: C.inkSoft, lineHeight: 1.6, margin: "12px auto 0", maxWidth: 560 },
+  emptyMsg: { fontSize: 14, fontStyle: "italic", color: C.inkSoft, lineHeight: 1.6, margin: "4px 0 0", padding: "16px 18px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}` },
+  footer: { marginTop: 32, textAlign: "center" },
+  saveRow: { display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" },
+  ghost: { background: "rgba(255,255,255,0.55)", color: C.plum, border: `1.5px solid ${C.gold}`, borderRadius: 12, padding: "10px 18px", fontSize: 13, fontWeight: 500 },
+  saveHint: { fontSize: 12, color: C.plum, marginTop: 12, fontStyle: "italic", maxWidth: 560, margin: "12px auto 0" },
+  signoff: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 17, color: C.plum, marginTop: 18 },
+};
