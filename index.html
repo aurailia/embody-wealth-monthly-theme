@@ -31,9 +31,9 @@ const ORACLE_URL = "https://aurailia.github.io/wealthy-woman-oracle/";
 const BG_IMAGE = "https://aurailia.github.io/embody-wealth-monthly-theme/images/background.png";
 const GRID_URL = ""; // Crystal Grid link (leave "" until ready)
 const HYPNOSIS = [
-  { title: "Hypnosis for Unwavering Belief", meta: "Anchor the certainty that it's already done", url: "https://www.dropbox.com/scl/fi/unzndpgwyp3540egj0ive/Hypnosis-for-unwavering-belief.mp3?rlkey=xq5v77xbnwmfn0fglskvmvpih&st=p9thnz81&dl=1" },
-  { title: "Millionaire Hypnosis", meta: "Step into wealth frequency", url: "https://www.dropbox.com/scl/fi/acts6jn0i55p431s0ppk4/millionaire-hypnosis.mp3?rlkey=7k2st6lfptdh1dfff3mly7bul&st=692x5o1o&dl=1" },
-  { title: "Hypnosis to Quantum Leap", meta: "Collapse the timeline to your next level", url: "https://www.dropbox.com/scl/fi/i7xz6hebldg1odm7q3sug/hypnosis-quantum-leap.mp3?rlkey=pklpfnbalojeitie740b39rra&st=2kmycffg&dl=1" },
+  { title: "Hypnosis for Unwavering Belief", meta: "Anchor the certainty that it's already done", url: "https://dl.dropboxusercontent.com/scl/fi/unzndpgwyp3540egj0ive/Hypnosis-for-unwavering-belief.mp3?rlkey=xq5v77xbnwmfn0fglskvmvpih" },
+  { title: "Millionaire Hypnosis", meta: "Step into wealth frequency", url: "https://dl.dropboxusercontent.com/scl/fi/acts6jn0i55p431s0ppk4/millionaire-hypnosis.mp3?rlkey=7k2st6lfptdh1dfff3mly7bul" },
+  { title: "Hypnosis to Quantum Leap", meta: "Collapse the timeline to your next level", url: "https://dl.dropboxusercontent.com/scl/fi/i7xz6hebldg1odm7q3sug/hypnosis-quantum-leap.mp3?rlkey=pklpfnbalojeitie740b39rra" },
 ];
 
 const C = {
@@ -72,6 +72,11 @@ const TABS = [
 // 31 cards · one for each day. Images live in your GitHub repo /cards folder.
 // Each image URL is built as: CARD_IMG_BASE + slug + ".png"
 const CARD_IMG_BASE = "https://aurailia.github.io/embody-wealth-monthly-theme/cards/";
+const COVER_IMAGES = [
+  CARD_IMG_BASE + "cover-1.png",
+  CARD_IMG_BASE + "cover-2.png",
+  CARD_IMG_BASE + "cover-3.png",
+];
 const ORACLE_DECK = [
   { slug: "abundance-flows", title: "Abundance Flows", desc: "What you've been waiting for is already moving toward you.",
     meaning: "This is a card of yes. The channels are open and the timing is ripe. Abundance moves toward ease, not strain, and right now the path between you and what you want is clearer than it's been in a while.",
@@ -561,17 +566,19 @@ function HypnosisTab() {
 
       <div style={st.groupLabel}>Hypnosis Audios</div>
       {HYPNOSIS.map((h, i) => (
-        h.url ? (
-          <a key={i} href={h.url} target="_blank" rel="noopener noreferrer" style={st.audioItem}>
-            <span style={st.playGlyph}>▶</span>
-            <div><div style={st.audioTitle}>{h.title}</div><div style={st.audioMeta}>{h.meta}</div></div>
-          </a>
-        ) : (
-          <div key={i} style={st.audioItem}>
-            <span style={{ ...st.playGlyph, opacity: 0.5 }}>▶</span>
-            <div><div style={st.audioTitle}>{h.title}</div><div style={st.audioMeta}>{h.meta} · link coming</div></div>
+        <div key={i} style={st.audioItem}>
+          <div style={st.audioHead}>
+            <span style={st.audioTitle}>{h.title}</span>
+            <span style={st.audioMeta}>{h.meta}</span>
           </div>
-        )
+          {h.url ? (
+            <audio controls preload="none" style={st.audioPlayer} src={h.url}>
+              Your browser doesn't support audio playback.
+            </audio>
+          ) : (
+            <div style={st.audioMeta}>Link coming soon</div>
+          )}
+        </div>
       ))}
 
       <div style={st.groupLabel}>EFT Tapping</div>
@@ -797,7 +804,9 @@ function OracleTab() {
           <div style={st.cardRow}>
             {trio.map((_, i) => (
               <button key={i} onClick={() => setChosen(i)} style={st.cardBack} className="card-back">
-                <span style={st.cardBackGlyph}>✦</span>
+                <img src={COVER_IMAGES[i]} alt="" style={st.cardBackImg}
+                  onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+                <span style={{ ...st.cardBackFallback, display: "none" }}>✦</span>
               </button>
             ))}
           </div>
@@ -1216,7 +1225,9 @@ const st = {
   ritualBody: { fontSize: 14.5, lineHeight: 1.7, color: C.inkSoft, margin: 0, paddingLeft: 48 },
   doneBadge: { marginTop: 6, textAlign: "center", fontFamily: "'Fraunces', serif", fontSize: 16, color: C.pink },
   groupLabel: { fontFamily: "'Fraunces', serif", fontSize: 18, color: C.plum, margin: "24px 0 12px", display: "flex", alignItems: "center", gap: 8 },
-  audioItem: { display: "flex", alignItems: "center", gap: 13, padding: "13px 15px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}`, marginBottom: 8, boxShadow: "0 3px 10px rgba(59,31,94,.05)" },
+  audioItem: { display: "flex", flexDirection: "column", gap: 10, padding: "14px 16px", background: "#fff", borderRadius: 12, border: `1px solid ${C.lilacSoft}`, marginBottom: 8, boxShadow: "0 3px 10px rgba(59,31,94,.05)" },
+  audioHead: { display: "flex", flexDirection: "column", gap: 2 },
+  audioPlayer: { width: "100%", height: 38 },
   playGlyph: { display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "50%", background: GRAD, color: "#fff", fontSize: 11, flexShrink: 0 },
   audioTitle: { fontSize: 14.5, fontWeight: 600, color: C.royal, marginBottom: 2 },
   audioMeta: { fontSize: 12.5, color: C.inkSoft },
@@ -1236,10 +1247,12 @@ const st = {
   hoLine: { fontFamily: "'Fraunces', serif", fontStyle: "italic", fontSize: 19, color: C.plum, lineHeight: 1.7 },
   centerTab: { textAlign: "center", padding: "10px 0" },
   bigGlyph: { fontSize: 54, marginBottom: 6 },
-  cardRow: { display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", margin: "10px 0 6px" },
-  cardBack: { width: 120, height: 180, borderRadius: 16, border: `2px solid ${C.goldSoft}`, cursor: "pointer",
-    background: `linear-gradient(155deg, ${C.plum}, ${C.royal})`, display: "flex", alignItems: "center", justifyContent: "center",
-    boxShadow: "0 8px 22px rgba(59,31,94,.3)", position: "relative", overflow: "hidden" },
+  cardRow: { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", margin: "10px 0 6px" },
+  cardBack: { width: 150, height: 210, borderRadius: 16, border: `2px solid ${C.goldSoft}`, cursor: "pointer",
+    padding: 0, display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 8px 22px rgba(59,31,94,.3)", position: "relative", overflow: "hidden", background: `linear-gradient(155deg, ${C.plum}, ${C.royal})` },
+  cardBackImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  cardBackFallback: { position: "absolute", inset: 0, alignItems: "center", justifyContent: "center", fontSize: 30, color: C.goldSoft, opacity: 0.9 },
   cardBackGlyph: { fontSize: 30, color: C.goldSoft, opacity: 0.9 },
   cardImg: { width: "100%", maxWidth: 300, aspectRatio: "5 / 7", objectFit: "cover", borderRadius: 18, margin: "0 auto 18px", display: "block",
     border: `2px solid ${C.goldSoft}`, boxShadow: "0 16px 44px rgba(123,63,160,.3)" },
