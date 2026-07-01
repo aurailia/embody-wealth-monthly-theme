@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dreaming Into Being · Embody Wealth</title>
+<title>Unwavering Belief In Myself · Embody Wealth</title>
 <style>
   html, body { margin: 0; padding: 0; }
   #root { min-height: 100vh; }
@@ -333,16 +333,16 @@ const BG_IMAGE = "https://aurailia.github.io/embody-wealth-monthly-theme/images/
 const GRID_URL = ""; // Crystal Grid link (leave "" until ready)
 const HYPNOSIS = [{
   title: "Hypnosis for Unwavering Belief",
-  meta: "Anchor the certainty that it's already done",
+  meta: "Anchor unshakeable belief in yourself · play as you fall asleep",
   url: "https://dl.dropboxusercontent.com/scl/fi/unzndpgwyp3540egj0ive/Hypnosis-for-unwavering-belief.mp3?rlkey=xq5v77xbnwmfn0fglskvmvpih"
+}, {
+  title: "People Are Glad to Pay Me",
+  meta: "Rewire the belief that people happily pay you",
+  url: ""
 }, {
   title: "Millionaire Hypnosis",
   meta: "Step into wealth frequency",
   url: "https://dl.dropboxusercontent.com/scl/fi/acts6jn0i55p431s0ppk4/millionaire-hypnosis.mp3?rlkey=7k2st6lfptdh1dfff3mly7bul"
-}, {
-  title: "Hypnosis to Quantum Leap",
-  meta: "Collapse the timeline to your next level",
-  url: "https://dl.dropboxusercontent.com/scl/fi/i7xz6hebldg1odm7q3sug/hypnosis-quantum-leap.mp3?rlkey=pklpfnbalojeitie740b39rra"
 }];
 const C = {
   royal: "#2E1A47",
@@ -377,7 +377,7 @@ const C = {
 const GRAD = `linear-gradient(110deg, ${C.gradStart} 0%, ${C.gradMid} 52%, ${C.gradEnd} 100%)`;
 const GRAD_TEXT = `linear-gradient(105deg, ${C.plum} 0%, ${C.gradMid} 45%, ${C.gradEnd} 100%)`;
 const GEM_COLORS = ["#7B3FA0", "#B79CD9", "#C9A227", "#E84F8A", "#9B6FC4", "#E3C766", "#5B2A86", "#D4B3EC"];
-const TABS = [["month", "The Month", "🌙"], ["practice", "The Practice", "✦"], ["spell", "Magic Spell", "🔮"], ["hypnosis", "Hypnosis & Healing", "🎧"], ["oracle", "Pull a Card", "🃏"], ["grid", "Order from the Universe", "🌠"], ["jar", "Abundance Jar", "💎"]];
+const TABS = [["month", "The Month", "🌙"], ["practice", "The Practice", "✦"], ["spell", "Magic Spell", "🔮"], ["hypnosis", "Hypnosis & Healing", "🎧"], ["oracle", "Pull a Card", "🃏"], ["grid", "Order from the Universe", "🌠"], ["jar", "Abundance Jar", "💎"], ["notes", "My Notes", "📔"]];
 
 // 31 cards · one for each day. Images live in your GitHub repo /cards folder.
 // Each image URL is built as: CARD_IMG_BASE + slug + ".png"
@@ -580,7 +580,7 @@ const prettyDate = iso => new Date(iso + "T00:00:00").toLocaleDateString(undefin
 });
 
 // Auto-saving state hook (localStorage). Works on GitHub Pages: same browser remembers everything.
-const KEY = "dreamingIntoBeing.v1";
+const KEY = "unwaveringBelief.v1";
 const loadStore = () => {
   try {
     return JSON.parse(localStorage.getItem(KEY)) || {};
@@ -641,6 +641,77 @@ function DreamingIntoBeing() {
     setTimeout(() => setJustAdded(false), 1100);
   };
   const removeGem = id => setGems(g => g.filter(x => x.id !== id));
+  const clearJar = () => {
+    setGems([]);
+  };
+  const clearProofs = () => {
+    setBlessings({});
+  };
+  const downloadNotes = () => {
+    const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const proofDays = Object.keys(blessings).filter(d => (blessings[d] || []).length).sort();
+    let proofHtml = "";
+    if (proofDays.length === 0) {
+      proofHtml = "<p class='empty'>No proofs logged yet.</p>";
+    } else {
+      proofDays.forEach(d => {
+        proofHtml += "<div class='day'>" + esc(prettyDate(d)) + "</div><ul>";
+        (blessings[d] || []).forEach(p => {
+          proofHtml += "<li>\u2726 " + esc(p) + "</li>";
+        });
+        proofHtml += "</ul>";
+      });
+    }
+    let jarHtml = gems.length === 0 ? "<p class='empty'>Nothing logged yet.</p>" : "<ul>" + gems.map(g => "<li>\u25C6 " + esc(g.text) + (g.date ? " <span class='tiny'>(" + esc(prettyDate(g.date)) + ")</span>" : "") + "</li>").join("") + "</ul>" + "<p class='total'>Total received this month: " + gems.length + "</p>";
+    let ordersHtml = "";
+    if (orders.length) {
+      const openO = orders.filter(o => !o.done),
+        doneO = orders.filter(o => o.done);
+      ordersHtml = "<div class='section'><h2>My Orders from the Universe</h2>";
+      if (openO.length) ordersHtml += "<p class='sub'>On the way</p><ul>" + openO.map(o => "<li>\u25CB " + esc(o.text) + "</li>").join("") + "</ul>";
+      if (doneO.length) ordersHtml += "<p class='sub'>Manifested</p><ul>" + doneO.map(o => "<li>\u2713 " + esc(o.text) + "</li>").join("") + "</ul>";
+      ordersHtml += "</div>";
+    }
+    const doc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Notes - ${esc(MONTH_NAME)}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+      * { box-sizing: border-box; }
+      body { font-family: 'Inter', sans-serif; color: #2E1A47; max-width: 640px; margin: 0 auto; padding: 48px 40px; line-height: 1.55; }
+      .kicker { text-align: center; letter-spacing: 4px; font-size: 11px; font-weight: 700; color: #8B5FBF; text-transform: uppercase; margin-bottom: 8px; }
+      h1 { font-family: 'Fraunces', serif; text-align: center; font-size: 34px; font-weight: 500; margin: 0 0 4px; color: #5B3A86; }
+      .month { text-align: center; font-family: 'Fraunces', serif; font-style: italic; color: #8B5FBF; margin-bottom: 32px; }
+      .section { margin-bottom: 28px; page-break-inside: avoid; }
+      h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8B5FBF; font-weight: 700; border-bottom: 1px solid #EBE2F7; padding-bottom: 6px; margin-bottom: 12px; }
+      .statement { font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; color: #5B3A86; background: #FBF6FF; padding: 16px 18px; border-radius: 12px; border-left: 3px solid #8B5FBF; }
+      .day { font-weight: 700; font-size: 13px; color: #5B3A86; margin: 10px 0 4px; }
+      ul { list-style: none; padding: 0; margin: 0 0 8px; }
+      li { font-size: 15px; padding: 3px 0; color: #2E1A47; }
+      .sub { font-weight: 600; color: #8B5FBF; margin: 10px 0 4px; font-size: 13px; }
+      .tiny { color: #9985B5; font-size: 12px; }
+      .total { font-weight: 600; color: #5B3A86; margin-top: 8px; }
+      .empty { font-style: italic; color: #9985B5; }
+      .signoff { text-align: center; font-family: 'Fraunces', serif; font-style: italic; color: #8B5FBF; margin-top: 40px; padding-top: 20px; border-top: 1px solid #EBE2F7; }
+      @media print { body { padding: 24px; } }
+    </style></head><body>
+      <div class="kicker">\u2726 Embody Wealth \u2726</div>
+      <h1>Unwavering Belief In Myself</h1>
+      <div class="month">My notes for ${esc(MONTH_NAME)}</div>
+      <div class="section"><h2>My Belief Statement</h2><div class="statement">${savedVision ? esc(savedVision) : "<span class='empty'>Not written yet.</span>"}</div></div>
+      <div class="section"><h2>My Proof Log</h2>${proofHtml}</div>
+      <div class="section"><h2>My Abundance Jar</h2>${jarHtml}</div>
+      ${ordersHtml}
+      <div class="signoff">I believe in you. To living our dreams. \u2014 Aurailia \u2726</div>
+      <scr` + `ipt>window.onload = function(){ setTimeout(function(){ window.print(); }, 400); };</scr` + `ipt>
+    </body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) {
+      alert("Please allow pop-ups to download your notes.");
+      return;
+    }
+    w.document.open();
+    w.document.write(doc);
+    w.document.close();
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: st.page,
     className: "dib-page"
@@ -649,7 +720,7 @@ function DreamingIntoBeing() {
     className: "dib-topbar"
   }, /*#__PURE__*/React.createElement("span", {
     style: st.topbarTitle
-  }, "Dreaming Into Being"), /*#__PURE__*/React.createElement("span", {
+  }, "Unwavering Belief In Myself"), /*#__PURE__*/React.createElement("span", {
     style: st.topbarMonth
   }, "✦ ", MONTH_NAME)), /*#__PURE__*/React.createElement("div", {
     style: st.frame,
@@ -658,18 +729,17 @@ function DreamingIntoBeing() {
     style: st.hero,
     className: "dib-hero"
   }, /*#__PURE__*/React.createElement("div", {
+    style: st.heroCard
+  }, /*#__PURE__*/React.createElement("div", {
     style: st.kicker,
     className: "dib-kicker"
   }, "✦ EMBODY WEALTH ✦"), /*#__PURE__*/React.createElement("h1", {
     style: st.title,
     className: "dib-title"
-  }, "Dreaming Into Being"), /*#__PURE__*/React.createElement("p", {
+  }, "Unwavering Belief In Myself"), /*#__PURE__*/React.createElement("p", {
     style: st.monthLine,
     className: "dib-monthline"
-  }, "Welcome to ", MONTH_NAME, ". This month's theme is dreaming your wealth into being."), /*#__PURE__*/React.createElement("p", {
-    style: st.tagline,
-    className: "dib-tagline"
-  }, "You don't wait for it to show up. You see it, you feel it, you bring it into being.")), /*#__PURE__*/React.createElement("div", {
+  }, "Welcome to ", MONTH_NAME, ". This month we build unshakeable belief in yourself and in the money that's already on its way to you."))), /*#__PURE__*/React.createElement("div", {
     style: st.layout,
     className: "dib-layout",
     ref: layoutRef
@@ -738,7 +808,15 @@ function DreamingIntoBeing() {
     setEntry: setEntry,
     addGem: addGem,
     removeGem: removeGem,
-    justAdded: justAdded
+    justAdded: justAdded,
+    clearJar: clearJar
+  }), tab === "notes" && /*#__PURE__*/React.createElement(NotesTab, {
+    savedVision: savedVision,
+    blessings: blessings,
+    gems: gems,
+    orders: orders,
+    downloadNotes: downloadNotes,
+    clearProofs: clearProofs
   }))), /*#__PURE__*/React.createElement("footer", {
     style: st.footer
   }, /*#__PURE__*/React.createElement("p", {
@@ -752,30 +830,30 @@ function DreamingIntoBeing() {
 function MonthTab() {
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: st.welcome
-  }, "We've done this before in Embody Wealth, and it's been powerful."), /*#__PURE__*/React.createElement("p", {
+  }, "You are worthy of it. You are certain of it. And you don't waver, no matter what the outside says yet."), /*#__PURE__*/React.createElement("p", {
     style: st.body
-  }, "So we're running it again. It's called Dreaming Into Being, where you manifest wealth by visualizing it into reality. This is a daily practice for the whole month. We rewire for abundance, shift into receiving mode, and bring the life you want into being using SATS."), /*#__PURE__*/React.createElement("div", {
+  }, "This month, we get unshakeable. The theme is unwavering belief in yourself. Two beliefs, one frequency. First, that you are worthy of the money, the clients, and the life you want. Second, that people will happily pay you for what you carry. This is the belief work that everything else in your business sits on top of. Your marketing, your prices, your offers, none of it lands if underneath it you're quietly unsure you deserve it or that anyone will say yes."), /*#__PURE__*/React.createElement("div", {
     style: st.callout
   }, /*#__PURE__*/React.createElement("div", {
     style: st.calloutTitle
-  }, "What is SATS?"), /*#__PURE__*/React.createElement("p", {
+  }, "Why belief is the real strategy"), /*#__PURE__*/React.createElement("p", {
     style: st.calloutBody
-  }, "State Akin To Sleep, a technique from Neville Goddard. You drop into the relaxed state right before sleep and visualize your desire as already real. The principle underneath it is the Law of Assumption: what you assume to be true in your mind shows up in your reality. We use SATS at night to plant the vision, then wake into it to set the tone for the day.")), /*#__PURE__*/React.createElement("h3", {
+  }, "People don't buy from your funnel. They buy from your certainty. When you doubt your worth, it leaks into your pricing, your posts, and the pause before you say your rate. When you're unwavering, it's felt before a word is read. This month we build that certainty on purpose, until belief in yourself and belief that they'll pay you becomes your baseline, not your good day.")), /*#__PURE__*/React.createElement("h3", {
     style: st.h3
   }, "Why this rewires Mind, Body & Soul"), /*#__PURE__*/React.createElement(Pillar, {
     glyph: "🧠",
     name: "Mind"
-  }, "Your mind doesn't separate vividly imagined from real. When you rehearse the wealth you want in that state right before sleep, you're feeding your subconscious a new assumption. Repeat it daily and the assumption of abundance becomes the default your mind scans the world for. You start noticing the people, openings, and yeses that were always there."), /*#__PURE__*/React.createElement(Pillar, {
+  }, "Your mind looks for evidence of whatever you've decided is true. Tell it you're not sure people will pay, and it collects every unanswered message as proof. Tell it you're worthy and the yeses are coming, and it starts noticing the openings, the interest, the people leaning in. This month we point it at your worth on purpose, until doubt becomes the thought that feels out of place."), /*#__PURE__*/React.createElement(Pillar, {
     glyph: "👑",
     name: "Body"
-  }, "Manifestation isn't only a thought. It's a feeling in the body. When you visualize and actually feel the satisfaction of the wealthy, successful life, your nervous system practices receiving it as safe and normal before it arrives. The more you feel it, the more powerful it is. Your body starts recognizing abundance as home, so it stops bracing against it."), /*#__PURE__*/React.createElement(Pillar, {
+  }, "Charging your worth can feel unsafe in the body long before it feels wrong in the mind. Your nervous system learned that wanting more, or asking for more, was risky. So it flinches when you say the number. This month we regulate that. We practice the felt sense of being worthy and being paid, so your body stops bracing and starts treating it as normal. Clients feel that steadiness before they read your words."), /*#__PURE__*/React.createElement(Pillar, {
     glyph: "🕊️",
     name: "Soul"
-  }, "You're not begging for it. You're assuming it. Dreaming into being is the soul-level decision that what you desire is already yours and you're simply walking toward it. That certainty changes how you show up, what you create, how you receive. The woman living your vision isn't ahead of you. You're becoming her in your imagination first, then watching the 3D catch up."), /*#__PURE__*/React.createElement("h3", {
+  }, "Your worth was never up for debate, and it was never something to earn through exhaustion. Underneath the proving is a woman who already knows what she carries. This month you stop auditioning for your own life. You decide you're worthy, you decide they'll pay, and you hold that decision steady no matter what the outside says yet. That unwavering knowing is the most magnetic thing you own."), /*#__PURE__*/React.createElement("h3", {
     style: st.h3
   }, "What's happening this month"), /*#__PURE__*/React.createElement("div", {
     style: st.eventList
-  }, [["🌙", "The Daily Practice", "Come back to your vision and charge your totem, then run the morning, totem, and night ritual each day. Find it in The Practice tab."], ["🔮", "The \"It Is Done\" Money Spell", "Open the month with a sealing ritual to decide it's already done. Cast it from the Magic Spell tab."], ["🃏", "Pull a Card", "Pull a daily card from the Dreaming Into Being oracle to see what your vision is asking for."], ["🌠", "Order from the Universe", "Place a specific order, come back daily to tune in, and check it off when it arrives. In the Order from the Universe tab."], ["🎧", "Hypnosis & Healing", "Hypnosis audios for the month, plus EFT tapping and Ho'oponopono in the Hypnosis & Healing tab."], ["💎", "Abundance Jar", "Log everything you receive this month and watch the proof pile up."], ["💸", "Group Hypnosis · Releasing the Ceiling · June 12", "A deep session to lift the ceiling on what you let yourself receive."]].map(([g, t, d], i) => /*#__PURE__*/React.createElement("div", {
+  }, [["🌙", "The Daily Practice", "Anchor your worth, charge your totem, and run the morning, midday, and night belief ritual each day. Find it in The Practice tab."], ["🔮", "The \"I Am Worthy\" Belief Spell", "Open the month with a ritual to seal your worth and call in the yeses. Cast it from the Magic Spell tab."], ["🃏", "Pull a Card", "Pull a daily card from the oracle to see what your belief is asking for."], ["🌠", "Order from the Universe", "Place a specific order, come back daily to tune in, and check it off when it arrives. In the Order from the Universe tab."], ["🎧", "Hypnosis & Healing", "Hypnosis audios for unwavering belief, plus EFT tapping and Ho'oponopono in the Hypnosis & Healing tab."], ["💎", "Abundance Jar", "Log every yes, every payment, every bit of proof you receive this month and watch it pile up."], ["💸", "Group Hypnosis · Unwavering Belief in Yourself · Live", "A deep session to anchor unshakeable belief in your worth and that people will pay you. Date on the calendar."]].map(([g, t, d], i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: st.eventRow
   }, /*#__PURE__*/React.createElement("span", {
@@ -825,123 +903,111 @@ function PracticeTab({
   };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
     style: st.body
-  }, "Here's the practice. First you come back to your vision and charge your totem. Then each day you run the simple ritual: morning, totem, night, plus three blessings. The more you see it, feel it, and imagine it, the faster it lands in your 3D world."), /*#__PURE__*/React.createElement("div", {
+  }, "Here's the practice, and it's built to actually rewire belief, not just repeat words at yourself. Your subconscious doesn't update from affirmations it doesn't believe yet. It updates from your body, your emotion, and real evidence. So this month we work with all three, and we make it fun. Write your belief statement first, then run the three daily moves below."), /*#__PURE__*/React.createElement("div", {
     style: st.stepHead,
     className: "dib-stephead"
   }, /*#__PURE__*/React.createElement("span", {
     style: st.stepPill
-  }, "FIRST"), " Come back to the vision"), /*#__PURE__*/React.createElement("div", {
+  }, "FIRST"), " Write your belief statement"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...st.softCard,
       ...st.cardLilac
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: st.smallBody
-  }, "This isn't about this month's goals. This is the bigger picture, the life and the business you're here to create and live. Close your eyes for a few minutes and see it. Where you live, how your days feel, the work you do, the woman you are inside it, the freedom and the abundance. Don't just think it. Feel it. Let your body remember what you're building toward."), /*#__PURE__*/React.createElement("p", {
+  }, "Write it as if it's already true, because on the inside, it is. This is the belief you're anchoring all month: that you're worthy of the money and the life you want, and that people will happily pay you for what you carry. Keep it believable enough that your body doesn't flat-out reject it. \"I'm becoming the woman who charges with ease\" lands better than a number you don't believe yet."), /*#__PURE__*/React.createElement("p", {
     style: {
       ...st.smallBody,
       fontWeight: 600,
       color: C.plum
     }
-  }, "Then write your vision below, or tap the mic on your keyboard and speak it freely. Present tense, as if you're already living it. This is the vision you'll come back to, see, and feel every day this month."), /*#__PURE__*/React.createElement("textarea", {
+  }, "Write yours below, or tap the mic and speak it. Present tense, first person. This is the sentence you'll come back to every day this month."), /*#__PURE__*/React.createElement("textarea", {
     style: st.textarea,
     value: vision,
-    placeholder: "See it and feel it… 'I wake up in the home I love. My business runs with ease and brings in more than enough. My work reaches the women it's meant for. I feel free, abundant, and fully myself…'",
+    placeholder: "Say it like it's already true… 'I am worthy of being paid well for my magic. People are glad to pay me. I trust myself, and I don't waver.'",
     onChange: e => setVision(e.target.value)
   }), /*#__PURE__*/React.createElement("div", {
     style: st.rowBetween
   }, /*#__PURE__*/React.createElement("button", {
     style: st.btn,
     onClick: () => setSavedVision(vision)
-  }, savedVision ? "Update my vision" : "Save my vision"), savedVision && /*#__PURE__*/React.createElement("span", {
+  }, savedVision ? "Update my statement" : "Save my statement"), savedVision && /*#__PURE__*/React.createElement("span", {
     style: st.streak
-  }, "Vision saved ✦")), /*#__PURE__*/React.createElement("p", {
+  }, "Belief saved ✦")), /*#__PURE__*/React.createElement("p", {
     style: {
       ...st.smallBody,
       marginTop: 12,
       marginBottom: 0,
       fontStyle: "italic"
     }
-  }, "For specific things you're calling in this month, place those in the Order from the Universe tab.")), /*#__PURE__*/React.createElement("div", {
+  }, "For specific things you're calling in, like a number of clients or a payment, place those in the Order from the Universe tab.")), /*#__PURE__*/React.createElement("div", {
     style: st.stepHead,
     className: "dib-stephead"
   }, /*#__PURE__*/React.createElement("span", {
     style: st.stepPill
-  }, "THEN"), " Charge your totem"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...st.softCard,
-      ...st.cardGold
-    }
-  }, /*#__PURE__*/React.createElement("p", {
-    style: st.smallBody
-  }, "Pick a totem. A crystal, a ring, a coin, anything small you can hold and carry. Here's how you charge it:"), /*#__PURE__*/React.createElement("ol", {
-    style: st.numList
-  }, /*#__PURE__*/React.createElement("li", null, "Close your eyes and visualize your ideal life and exactly who you are inside it. How you move, how you speak, what your days feel like, who you've become."), /*#__PURE__*/React.createElement("li", null, "Let it build until you feel it in your heart. Stay there until the feeling is real and warm in your chest."), /*#__PURE__*/React.createElement("li", null, "Hold your totem to your heart and imagine that feeling flowing out of your heart and into the totem, filling it completely."), /*#__PURE__*/React.createElement("li", null, "When it feels full, open your eyes. Your totem now holds the energy of your highest self and the life you desire.")), /*#__PURE__*/React.createElement("p", {
+  }, "DAILY"), " Three moves to become her"), /*#__PURE__*/React.createElement("p", {
     style: {
       ...st.smallBody,
-      margin: 0
+      marginTop: -4
     }
-  }, "For an even deeper charge, do this while listening to a hypnosis from the Hypnosis & Healing tab.")), /*#__PURE__*/React.createElement("div", {
-    style: st.stepHead,
-    className: "dib-stephead"
-  }, /*#__PURE__*/React.createElement("span", {
-    style: st.stepPill
-  }, "DAILY"), " The ritual"), /*#__PURE__*/React.createElement(RitualCard, {
-    glyph: "☀️",
-    title: "Morning · wake into the vision",
+  }, "Three short moves, morning, midday, night. They're quick on purpose. What makes them work isn't length, it's doing them daily and letting your body feel them."), /*#__PURE__*/React.createElement(RitualCard, {
+    glyph: "🔥",
+    title: "Morning · Power Pose + Mirror",
     tint: C.gold
-  }, "Before you reach for your phone, place your hand on your heart. Picture the end of today as if it already happened exactly the way you want. See it, and feel the satisfaction of living your wealthy, successful life in your body. Stay with that feeling for a minute or two. This sets the tone for your whole day."), /*#__PURE__*/React.createElement(RitualCard, {
-    glyph: "🔮",
-    title: "Anytime · connect with your totem",
+  }, "Stand tall in front of a mirror. Feet planted, shoulders back, chin level, hands on your hips or thrown up like you just won. Hold the pose for a slow count of ten, this literally shifts your body chemistry out of doubt. Then look yourself dead in the eyes and say your belief statement out loud, twice. First time to say it. Second time to mean it. A little smile at the end seals it. Yes it feels ridiculous. Do it anyway. That's the point."), /*#__PURE__*/React.createElement(RitualCard, {
+    glyph: "🔍",
+    title: "Midday · The Evidence Hunt",
     tint: C.purple
-  }, "At least once during the day, hold your charged totem for about 30 seconds. Feel the energy you placed in it. Reconnect with the vision and let it remind you who you're being this month. Keep the totem somewhere you'll see it, your desk, your bag, your nightstand."), /*#__PURE__*/React.createElement(RitualCard, {
+  }, "Here's the game. Your subconscious believes what you keep pointing it at, so today you go hunting for proof that you're worthy and that people value you. A saved message, a compliment, a moment someone leaned in, a past client win, a time you were paid. Find at least one and actually name it out loud: \"That's proof.\" You can't affirm your way past doubt, but you can out-evidence it. Log what you find in your proofs below."), /*#__PURE__*/React.createElement(RitualCard, {
     glyph: "🌙",
-    title: "Night · fall asleep with intention",
+    title: "Night · Whisper It In",
     tint: C.plum
-  }, "As you drift off, hold your vision close in that relaxed state right before sleep (this is SATS). Visualize the scene of your desire fulfilled and feel the emotions of it being real. Loop it gently as you fall asleep. The more you feel it, the more powerful it is. You're planting it in your subconscious overnight."), /*#__PURE__*/React.createElement("div", {
+  }, "The minutes right before sleep are when your subconscious is most open, so this is the highest-leverage moment of the day. As you drift off, softly repeat your belief statement, slow and gentle, like you're telling yourself a secret you already know is true. Feel it in your chest. Don't force it. For an even deeper rewire, put on one of the hypnosis tracks from the Hypnosis & Healing tab and let it carry you into sleep. Let belief be the last thing your mind holds, and let it wire in overnight."), /*#__PURE__*/React.createElement("div", {
+    style: st.practiceNote
+  }, /*#__PURE__*/React.createElement("strong", null, "Why this works:"), " the power pose changes your state, the evidence hunt gives your brain real proof instead of empty words, and the bedtime whisper plants it while your subconscious is wide open. Body, evidence, and timing. That's how belief actually rewires. Expect the first couple of weeks to feel a little awkward. That's your old pattern loosening. Keep going."), /*#__PURE__*/React.createElement("div", {
     style: st.stepHead,
     className: "dib-stephead"
   }, /*#__PURE__*/React.createElement("span", {
     style: st.stepPill
-  }, "DAILY"), " Three blessings"), /*#__PURE__*/React.createElement("div", {
+  }, "DAILY"), " Your proof log"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...st.softCard,
       ...st.cardLilac
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: st.smallBody
-  }, "Each day, bless three things you usually have negative or tight feelings toward. This is the rewiring. You're teaching your mind and body to meet what used to trigger lack with gratitude instead."), /*#__PURE__*/React.createElement("div", {
+  }, "Log up to three proofs a day that your worth is real and it's working. This is the part the research is clearest on, your brain updates its self-image on evidence, not on repetition alone. Every proof you log is a vote for the woman you're becoming. Small counts. It all counts."), /*#__PURE__*/React.createElement("div", {
     style: st.exampleBox
   }, /*#__PURE__*/React.createElement("div", {
     style: st.exampleLabel
   }, "For example"), /*#__PURE__*/React.createElement("div", {
     style: st.exampleLine
-  }, "\"I bless my bills. Thank you for the home, the power, and the phone I get to use every day.\""), /*#__PURE__*/React.createElement("div", {
+  }, "\"Someone told me my work changed something for them.\""), /*#__PURE__*/React.createElement("div", {
     style: st.exampleLine
-  }, "\"I bless my bank account. Thank you for holding my money and always refilling.\""), /*#__PURE__*/React.createElement("div", {
+  }, "\"I said my price out loud and didn't discount it.\""), /*#__PURE__*/React.createElement("div", {
     style: st.exampleLine
-  }, "\"I bless my body. Thank you for carrying me through every day.\"")), /*#__PURE__*/React.createElement("div", {
+  }, "\"A payment came in, right on time.\"")), /*#__PURE__*/React.createElement("div", {
     style: st.practiceNote
-  }, /*#__PURE__*/React.createElement("strong", null, "The practice:"), " say each blessing out loud with your hand on your heart. Don't rush it. Pause after each one and actually feel the gratitude land before you move to the next. You can keep the same three every day, just notice how your feeling toward them softens over the month. Write them here and share them in the group."), [0, 1, 2].map(i => /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("strong", null, "The practice:"), " say each proof out loud with your hand on your heart, and let it land before the next. You're teaching your body that the evidence is real. Write them here and watch them stack up over the month."), [0, 1, 2].map(i => /*#__PURE__*/React.createElement("input", {
     key: i,
     style: {
       ...st.input,
       marginBottom: 8
     },
     value: draft[i],
-    placeholder: `Blessing ${i + 1}`,
+    placeholder: `Proof ${i + 1}`,
     onChange: e => setDraftAt(i, e.target.value),
     onKeyDown: e => e.key === "Enter" && saveBlessings()
   })), /*#__PURE__*/React.createElement("button", {
     style: st.btn,
     onClick: saveBlessings
-  }, "Save blessings"), savedBlessings.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "Save proofs"), savedBlessings.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: st.miniLabel
-  }, "Today's blessings"), /*#__PURE__*/React.createElement("ul", {
+  }, "Today's proof"), /*#__PURE__*/React.createElement("ul", {
     style: st.list
   }, savedBlessings.map((b, idx) => /*#__PURE__*/React.createElement("li", {
     key: idx,
@@ -967,7 +1033,7 @@ function PracticeTab({
       color: C.lilacSoft,
       margin: 0
     }
-  }, "Post in the group: how it felt to fall asleep holding your vision, plus your three blessings for the day. As you bring this into daily life, watch the people, events, and circumstances that support your dream start showing up.")));
+  }, "Post in the group: your belief statement for the month, and one proof from today. Watch what happens when a room full of women decide to believe in themselves out loud at the same time.")));
 }
 function RitualCard({
   glyph,
@@ -998,39 +1064,37 @@ function SpellTab() {
       ...st.h3,
       marginTop: 0
     }
-  }, "The \"It Is Done\" Money Spell"), /*#__PURE__*/React.createElement("p", {
+  }, "The Mirror Spell for Unwavering Belief"), /*#__PURE__*/React.createElement("p", {
     style: st.body
-  }, "We open this work with magic. This is a sealing, a moment of deciding, once and for all, that what you desire is already real. Not hoped. Not wished. Done. Cast it whenever you're ready to begin."), /*#__PURE__*/React.createElement(SpellBlock, {
+  }, "We open this work with magic. This is a mirror spell, a ritual for looking yourself in the eye and deciding, once and for all, that you are worthy and that the money is coming. The mirror is the oldest witch's tool for a reason. It shows you the one person your whole business depends on believing in. Cast this whenever you're ready to begin."), /*#__PURE__*/React.createElement(SpellBlock, {
     title: "What you need"
   }, /*#__PURE__*/React.createElement("ul", {
     style: st.spellList
-  }, /*#__PURE__*/React.createElement("li", null, "A gold or white candle"), /*#__PURE__*/React.createElement("li", null, "Three bay leaves"), /*#__PURE__*/React.createElement("li", null, "A pen"), /*#__PURE__*/React.createElement("li", null, "Cinnamon"), /*#__PURE__*/React.createElement("li", null, "A piece of paper"), /*#__PURE__*/React.createElement("li", null, "Your certainty"))), /*#__PURE__*/React.createElement(SpellStep, {
+  }, /*#__PURE__*/React.createElement("li", null, "A mirror you can sit in front of"), /*#__PURE__*/React.createElement("li", null, "A gold or white candle"), /*#__PURE__*/React.createElement("li", null, "A coin or a bill (any amount)"), /*#__PURE__*/React.createElement("li", null, "A pinch of cinnamon"), /*#__PURE__*/React.createElement("li", null, "Rose petals or a drop of rose oil, if you have it"), /*#__PURE__*/React.createElement("li", null, "Your own eyes, and your certainty"))), /*#__PURE__*/React.createElement(SpellStep, {
     n: "1",
     title: "Enter sacred space"
-  }, "Light your candle. Take three slow breaths. Feel your feet on the floor."), /*#__PURE__*/React.createElement(SpellStep, {
+  }, "Sit in front of the mirror in a quiet place. Light your candle beside it so the flame lights your face. Take three slow breaths. Feel your feet on the floor. This is you meeting you."), /*#__PURE__*/React.createElement(SpellStep, {
     n: "2",
-    title: "Write your three decrees"
-  }, "On each bay leaf, write one thing that is sealed, decided, non-negotiable.", /*#__PURE__*/React.createElement("div", {
-    style: st.spellSub
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Leaf one · your income:"), " \"$______ flows to me consistently.\""), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Leaf two · your business:"), " \"My work reaches the women it was made for.\""), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "Leaf three · your identity:"), " \"I am the woman it is already done for.\"")), "Hold all three bay leaves in your palms. Close your eyes. Feel the weight of decided. Not hoped. Not wished. Done."), /*#__PURE__*/React.createElement(SpellStep, {
+    title: "Anoint the coin"
+  }, "Hold your coin or bill in both hands. Sprinkle the pinch of cinnamon over it to quicken it, and if you have rose, add a petal or a drop of oil to bless it with self-love. Money and worthiness, sealed together in your palm. Set it in front of the mirror where you can see it."), /*#__PURE__*/React.createElement(SpellStep, {
     n: "3",
-    title: "Write your decree"
-  }, "On your paper, in your own handwriting, write:", /*#__PURE__*/React.createElement("div", {
-    style: st.incantation
-  }, "\"As above, so below. As within, so without. What I have decided in the unseen is already real in the seen. My business thrives. My income flows. My clients come. My power is certain. This is not a wish. This is a fact. It is done.\""), "Sign your name."), /*#__PURE__*/React.createElement(SpellStep, {
+    title: "Look yourself in the eye"
+  }, "Look into your own eyes in the mirror. Not your skin, not your flaws, your eyes. Hold your own gaze until it stops feeling strange. This is the part most people can't do, and it's the whole spell. Stay until you soften."), /*#__PURE__*/React.createElement(SpellStep, {
     n: "4",
-    title: "Seal it"
-  }, "Sprinkle cinnamon over your signature, sealing it with acceleration. Fold the paper toward you three times. Hold it to your heart and actually feel the done-ness of it. Not the hope. The certainty."), /*#__PURE__*/React.createElement(SpellStep, {
+    title: "Speak your decree"
+  }, "Still holding your own gaze, say each line out loud, slowly, like you mean it:", /*#__PURE__*/React.createElement("div", {
+    style: st.incantation
+  }, "\"I see you, and you are worthy. Worthy of the money. Worthy of the yes. Worthy of being paid well for your magic. People are glad to pay you, because what you carry is real. I believe in you, and I will not waver. This is not a wish. This is who you are. And so it is.\""), "Say the last line, \"and so it is,\" with your hand on your heart."), /*#__PURE__*/React.createElement(SpellStep, {
     n: "5",
-    title: "Let it burn"
-  }, "Place the folded paper under your candle as it burns. Make sure you do this in a safe place."), /*#__PURE__*/React.createElement(SpellBlock, {
+    title: "Seal it and carry it"
+  }, "Pass the coin briefly over the candle's warmth to charge it, in a safe way, then tuck it into your wallet or your bag. It's now a charged token of your worth. Every time your fingers find it this month, it says: I am worthy, and the money is coming. Let the candle burn down safely, or snuff it and relight it each morning you want a boost."), /*#__PURE__*/React.createElement(SpellBlock, {
     title: "After the spell"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
       ...st.smallBody,
       margin: 0
     }
-  }, "Take one action today from the woman it's already done for. Post the offer. Send the email. Raise the price. Do something she would do, not something you've been waiting to feel ready for. Then drop a 🔮 in the group when you've cast yours.")));
+  }, "Do one thing today that the woman who fully believes in herself would do. Say your real price without flinching. Send the offer. Follow up on the yes you've been avoiding. Then drop a 🪞 in the group when you've cast yours.")));
 }
 function SpellBlock({
   title,
@@ -1069,7 +1133,7 @@ function HypnosisTab() {
     }
   }, "Hypnosis & Healing"), /*#__PURE__*/React.createElement("p", {
     style: st.body
-  }, "Your support practices for the month. Use the hypnosis audios to charge your totem and deepen the visualization. Use the EFT and Ho'oponopono whenever resistance comes up around receiving."), /*#__PURE__*/React.createElement("div", {
+  }, "Your support practices for the month. Play a hypnosis track as you fall asleep to rewire belief while your subconscious is wide open. Use the EFT tapping and Ho'oponopono whenever doubt about your worth or about being paid starts to creep in."), /*#__PURE__*/React.createElement("div", {
     style: st.groupLabel
   }, "Hypnosis Audios"), HYPNOSIS.map((h, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
@@ -1095,26 +1159,26 @@ function HypnosisTab() {
       marginTop: -4
     }
   }, "Tap through each point as you say the words out loud. Feel free to change the wording to whatever's true for you. Tap until the charge softens. Tap on each script as often as you need this month."), /*#__PURE__*/React.createElement(WhatIsTapping, null), /*#__PURE__*/React.createElement(EFTScript, {
-    name: "The Permission to Receive",
-    sub: "For when wanting more feels unsafe",
-    setups: ["Even though part of me feels afraid to want this much, I deeply and completely love and accept myself, and I give myself permission to want it anyway.", "Even though wanting more feels greedy, or risky, or like I'm asking to be let down again, I choose to accept where I am and open a little more.", "Even though some part of me learned it was safer to keep my dreams small, I honor that part, and I'm choosing to feel safe wanting the full vision now."],
+    name: "I Believe in My Gifts",
+    sub: "For trusting the magic you bring",
+    setups: ["Even though part of me doubts my gifts are anything special, I deeply and completely love and accept myself, and the magic I carry.", "Even though I downplay what I do and wonder if it's really valuable, I choose to accept that my gifts are real and they matter.", "Even though some part of me learned to hide my magic to stay safe, I honor that part, and I'm choosing to trust my gifts and let them be seen now."],
     rounds: [{
       label: "Round 1 · Naming it",
-      lines: ["Eyebrow: All this wanting I've been holding back.", "Side of eye: It feels big to admit how much I actually want.", "Under eye: Part of me thinks it's safer to stay small.", "Under nose: I've talked myself out of the vision so many times.", "Chin: All this fear of wanting and not getting.", "Collarbone: It's felt safer not to hope.", "Under arm: But the wanting hasn't gone anywhere.", "Top of head: It's still here, asking to be felt."]
+      lines: ["Eyebrow: This quiet doubt about my gifts.", "Side of eye: Wondering if what I do is really that special.", "Under eye: I've been downplaying my magic.", "Under nose: Talking myself out of how much I actually bring.", "Chin: Afraid to fully own what I'm good at.", "Collarbone: Hiding my gifts to feel safe.", "Under arm: Comparing my magic to everyone else's.", "Top of head: This old habit of shrinking what I carry."]
     }, {
       label: "Round 2 · Shifting it",
-      lines: ["Eyebrow: What if I let myself want it fully.", "Side of eye: What if my desire is allowed.", "Under eye: What if wanting more is safe for me now.", "Under nose: I'm allowed to want a wealthy, beautiful life.", "Chin: My desire is a compass, not a danger.", "Collarbone: I choose to feel safe holding the whole vision.", "Under arm: I let myself want it, claim it, and feel it as mine.", "Top of head: I am safe to dream this big, and I do."]
+      lines: ["Eyebrow: What if my gifts are exactly what someone needs.", "Side of eye: What if my magic is real and rare.", "Under eye: I trust the gifts I was given.", "Under nose: The magic I bring changes lives.", "Chin: No one does it quite the way I do.", "Collarbone: I let my gifts be fully seen.", "Under arm: I believe in the magic I bring to the world.", "Top of head: My gifts matter, and I own them completely."]
     }]
   }), /*#__PURE__*/React.createElement(EFTScript, {
-    name: "It's Safe to Receive",
-    sub: "For receiving without earning it first",
-    setups: ["Even though I feel like I have to earn every good thing, work harder, prove more, I deeply and completely accept myself exactly as I am.", "Even though receiving without earning it feels uncomfortable in my body, I choose to let that discomfort soften and let good things in.", "Even though I learned that rest, money, and ease have to be deserved, I'm allowed to receive simply because I exist, and I open to that now."],
+    name: "People Are Glad to Pay Me",
+    sub: "For the fear that no one will say yes",
+    setups: ["Even though part of me is afraid people won't pay me, I deeply and completely love and accept myself, and I open to the truth that they will.", "Even though I flinch when I say my price, I choose to accept that flinch and let it soften, because my work is worth it.", "Even though some part of me expects the no, I honor that fear, and I'm choosing to expect the yes now, because my magic is real and people want it."],
     rounds: [{
       label: "Round 1 · Naming it",
-      lines: ["Eyebrow: I've been bracing against receiving.", "Side of eye: Always working harder to deserve it.", "Under eye: It's hard to just let good things in.", "Under nose: Part of me thinks I have to earn every dollar of it.", "Chin: Receiving without struggle feels almost wrong.", "Collarbone: I've kept the door half closed.", "Under arm: Holding the abundance at arm's length.", "Top of head: Tired of pushing it away."]
+      lines: ["Eyebrow: This fear that people won't pay me.", "Side of eye: The flinch right before I say my price.", "Under eye: Part of me is bracing for the no.", "Under nose: I've been discounting myself to feel safer.", "Chin: Afraid to charge what my work is actually worth.", "Collarbone: Waiting for proof before I believe they'll say yes.", "Under arm: All this fear of asking and being turned down.", "Top of head: It's been keeping my prices small."]
     }, {
-      label: "Round 2 · Opening it",
-      lines: ["Eyebrow: What if I don't have to earn it.", "Side of eye: What if I can simply receive.", "Under eye: It's safe to let the good in.", "Under nose: Money and support and ease can flow to me.", "Chin: I open the door all the way.", "Collarbone: I receive with open hands and an open heart.", "Under arm: Abundance flows to me easily and often.", "Top of head: I am safe to receive it all, and I let it in."]
+      label: "Round 2 · Shifting it",
+      lines: ["Eyebrow: What if people are glad to pay me.", "Side of eye: What if my work is exactly what they've wanted.", "Under eye: I say my price with ease and hold it.", "Under nose: The right people say yes gladly.", "Chin: My magic is real, and it's worth paying for.", "Collarbone: I expect the yes now, not the no.", "Under arm: People pay me well and thank me for it.", "Top of head: I am paid generously for what I carry, and I let it in."]
     }]
   }), /*#__PURE__*/React.createElement("div", {
     style: st.groupLabel
@@ -1125,7 +1189,7 @@ function HypnosisTab() {
     }
   }, /*#__PURE__*/React.createElement("p", {
     style: st.smallBody
-  }, "Manifestation slows when part of you doesn't believe she's allowed to have it. This practice clears that. Bring to mind the part of you that has doubted, settled, or talked you out of the vision. Place a hand on your heart and speak to her, slowly, four lines, as many rounds as you need:"), /*#__PURE__*/React.createElement("div", {
+  }, "Belief wavers when part of you still doesn't think she's worth it. This practice makes peace with that part. Bring to mind the version of you who has doubted her worth, undercharged, shrunk, or braced for the no. Place a hand on your heart and speak to her, slowly, four lines, as many rounds as you need:"), /*#__PURE__*/React.createElement("div", {
     style: st.hoBox
   }, /*#__PURE__*/React.createElement("div", {
     style: st.hoLine
@@ -1141,7 +1205,7 @@ function HypnosisTab() {
       marginTop: 14,
       marginBottom: 0
     }
-  }, "Say it to the part that gave up on the dream. To the part that called the vision unrealistic. To the part still waiting for proof before she'll believe. You're not scolding her. You're making peace with her so she can come with you. When she stops resisting, the receiving opens.")));
+  }, "Say it to the part that undercharged. To the part that flinched at the price. To the part that decided, somewhere long ago, that she wasn't quite worth it. You're not scolding her. You're making peace with her so she can stop protecting you by keeping you small. When she softens, your belief stops wavering.")));
 }
 function WhatIsTapping() {
   const [open, setOpen] = useState(false);
@@ -1508,8 +1572,10 @@ function JarTab({
   setEntry,
   addGem,
   removeGem,
-  justAdded
+  justAdded,
+  clearJar
 }) {
+  const [confirming, setConfirming] = useState(false);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     style: {
       ...st.h3,
@@ -1517,7 +1583,7 @@ function JarTab({
     }
   }, "Your Abundance Jar"), /*#__PURE__*/React.createElement("p", {
     style: st.body
-  }, "As you dream it into being, the proof starts arriving. Money, a gift, an unexpected yes, a kindness you let in. Log it, and watch a gem drop in. Every gem tells your body the same thing: it's working, and it's safe to receive."), /*#__PURE__*/React.createElement("div", {
+  }, "As you build unwavering belief, the proof starts arriving. A payment, a yes, a new client, a kind word about your work. Log it, and watch a gem drop in. Every gem tells your body the same thing: you're worthy, people pay you, and it's already working."), /*#__PURE__*/React.createElement("div", {
     style: st.jarStage
   }, /*#__PURE__*/React.createElement(Jar, {
     gems: gems,
@@ -1541,7 +1607,7 @@ function JarTab({
     onClick: addGem
   }, "Drop a gem ✦")), gems.length === 0 ? /*#__PURE__*/React.createElement("p", {
     style: st.emptyMsg
-  }, "Nothing logged yet. The first gem is the hardest, because it asks you to admit you received something.") : /*#__PURE__*/React.createElement("ul", {
+  }, "Nothing logged yet. The first gem is the hardest, because it asks you to admit you received something.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("ul", {
     style: st.list
   }, [...gems].reverse().map(g => /*#__PURE__*/React.createElement("li", {
     key: g.id,
@@ -1558,7 +1624,127 @@ function JarTab({
   }, prettyDate(g.date)), /*#__PURE__*/React.createElement("button", {
     style: st.removeBtn,
     onClick: () => removeGem(g.id)
-  }, "×")))));
+  }, "×")))), /*#__PURE__*/React.createElement("div", {
+    style: st.newMonthBox
+  }, confirming ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: st.newMonthText
+  }, "Sure? This empties your jar for good. Make sure you've downloaded your notes from the My Notes tab first."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      justifyContent: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtnConfirm,
+    onClick: () => {
+      clearJar();
+      setConfirming(false);
+    }
+  }, "Yes, clear it"), /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtn,
+    onClick: () => setConfirming(false)
+  }, "Keep my jar"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: st.newMonthText
+  }, "New month, fresh jar? Download your notes from the My Notes tab first, then clear the jar to start counting your abundance again."), /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtn,
+    onClick: () => setConfirming(true)
+  }, "Clear jar & start a new month")))));
+}
+
+// ───────────── MY NOTES ─────────────
+function NotesTab({
+  savedVision,
+  blessings,
+  gems,
+  orders,
+  downloadNotes,
+  clearProofs
+}) {
+  const [confirmingProofs, setConfirmingProofs] = useState(false);
+  const proofDays = Object.keys(blessings).filter(d => (blessings[d] || []).length).sort().reverse();
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      ...st.h3,
+      marginTop: 0
+    }
+  }, "My Notes"), /*#__PURE__*/React.createElement("p", {
+    style: st.body
+  }, "Everything you've written this month in one place, your belief statement, your proof log, your jar, and your orders. Download it as a keepsake before you clear anything to start a new month."), /*#__PURE__*/React.createElement("div", {
+    style: st.notesDownloadRow
+  }, /*#__PURE__*/React.createElement("button", {
+    style: st.btn,
+    onClick: downloadNotes
+  }, "⬇ Download my notes (PDF)")), /*#__PURE__*/React.createElement("div", {
+    style: st.notesSection
+  }, /*#__PURE__*/React.createElement("div", {
+    style: st.notesLabel
+  }, "My belief statement"), /*#__PURE__*/React.createElement("div", {
+    style: st.notesText
+  }, savedVision ? savedVision : "Not written yet. Head to The Practice tab to write it.")), /*#__PURE__*/React.createElement("div", {
+    style: st.notesSection
+  }, /*#__PURE__*/React.createElement("div", {
+    style: st.notesLabel
+  }, "My proof log"), proofDays.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: st.notesEmpty
+  }, "No proofs logged yet.") : /*#__PURE__*/React.createElement(React.Fragment, null, proofDays.map(d => /*#__PURE__*/React.createElement("div", {
+    key: d,
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: st.notesDate
+  }, prettyDate(d)), /*#__PURE__*/React.createElement("ul", {
+    style: st.notesList
+  }, (blessings[d] || []).map((p, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: st.notesItem
+  }, "✦ ", p))))), /*#__PURE__*/React.createElement("div", {
+    style: st.proofClearRow
+  }, confirmingProofs ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: st.proofClearAsk
+  }, "Clear the whole proof log?"), /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtnConfirm,
+    onClick: () => {
+      clearProofs();
+      setConfirmingProofs(false);
+    }
+  }, "Yes, clear it"), /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtnSmall,
+    onClick: () => setConfirmingProofs(false)
+  }, "Keep it")) : /*#__PURE__*/React.createElement("button", {
+    style: st.clearBtnSmall,
+    onClick: () => setConfirmingProofs(true)
+  }, "Clear proof log")))), /*#__PURE__*/React.createElement("div", {
+    style: st.notesSection
+  }, /*#__PURE__*/React.createElement("div", {
+    style: st.notesLabel
+  }, "My abundance jar (", gems.length, ")"), gems.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: st.notesEmpty
+  }, "Nothing logged yet.") : /*#__PURE__*/React.createElement("ul", {
+    style: st.notesList
+  }, [...gems].reverse().map(g => /*#__PURE__*/React.createElement("li", {
+    key: g.id,
+    style: st.notesItem
+  }, "💎 ", g.text, g.date ? /*#__PURE__*/React.createElement("span", {
+    style: st.notesTiny
+  }, " · ", prettyDate(g.date)) : null)))), orders.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: st.notesSection
+  }, /*#__PURE__*/React.createElement("div", {
+    style: st.notesLabel
+  }, "My orders from the universe"), /*#__PURE__*/React.createElement("ul", {
+    style: st.notesList
+  }, orders.map(o => /*#__PURE__*/React.createElement("li", {
+    key: o.id,
+    style: st.notesItem
+  }, o.done ? "✓" : "○", " ", o.text)))));
 }
 
 // ───────────── SHARED ─────────────
@@ -2251,6 +2437,18 @@ const st = {
     textAlign: "center",
     marginBottom: 30
   },
+  heroCard: {
+    display: "block",
+    width: "100%",
+    padding: "16px 36px 18px",
+    background: "linear-gradient(160deg, rgba(255,255,255,0.8), rgba(251,246,255,0.68))",
+    borderRadius: 20,
+    border: "1px solid rgba(201,182,228,0.55)",
+    boxShadow: "0 12px 38px rgba(59,31,94,.14)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    boxSizing: "border-box"
+  },
   kicker: {
     fontSize: 12,
     letterSpacing: 4,
@@ -2260,11 +2458,11 @@ const st = {
   },
   title: {
     fontFamily: "'Fraunces', serif",
-    fontSize: 60,
+    fontSize: 50,
     fontWeight: 500,
-    margin: "0 0 12px",
-    lineHeight: 1.18,
-    paddingBottom: "0.12em",
+    margin: "0 0 10px",
+    lineHeight: 1.12,
+    paddingBottom: "0.1em",
     background: GRAD_TEXT,
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
@@ -2691,6 +2889,191 @@ const st = {
     fontWeight: 600,
     whiteSpace: "nowrap",
     boxShadow: "0 6px 18px rgba(155,111,196,.32)"
+  },
+  notesBtnRow: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: 18
+  },
+  notesBtn: {
+    background: "rgba(255,255,255,0.72)",
+    color: C.plum,
+    border: `1px solid ${C.lilac}`,
+    borderRadius: 999,
+    padding: "9px 20px",
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "0 6px 18px rgba(59,31,94,.1)",
+    backdropFilter: "blur(6px)"
+  },
+  notesOverlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 60,
+    background: "rgba(46,26,71,0.55)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    padding: "40px 16px",
+    overflowY: "auto"
+  },
+  notesModal: {
+    background: "linear-gradient(160deg, #FFFFFF, #FBF6FF)",
+    borderRadius: 22,
+    width: "100%",
+    maxWidth: 620,
+    boxShadow: "0 30px 70px rgba(46,26,71,.4)",
+    border: `1px solid ${C.lilac}`,
+    overflow: "hidden",
+    marginBottom: 40
+  },
+  notesHead: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "18px 24px",
+    borderBottom: `1px solid ${C.lilacSoft}`,
+    background: GRAD
+  },
+  notesTitle: {
+    fontFamily: "'Fraunces', serif",
+    fontSize: 21,
+    color: "#fff",
+    fontWeight: 500
+  },
+  notesClose: {
+    background: "rgba(255,255,255,0.25)",
+    border: "none",
+    color: "#fff",
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    fontSize: 20,
+    cursor: "pointer",
+    lineHeight: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  notesBody: {
+    padding: "20px 24px",
+    maxHeight: "60vh",
+    overflowY: "auto"
+  },
+  notesSection: {
+    marginBottom: 22
+  },
+  notesLabel: {
+    fontSize: 11,
+    letterSpacing: 2,
+    color: C.purple,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    marginBottom: 8
+  },
+  notesText: {
+    fontSize: 15,
+    lineHeight: 1.6,
+    color: C.ink,
+    background: "#fff",
+    borderRadius: 12,
+    padding: "14px 16px",
+    border: `1px solid ${C.lilacSoft}`,
+    fontStyle: "italic"
+  },
+  notesEmpty: {
+    fontSize: 14,
+    fontStyle: "italic",
+    color: C.inkSoft
+  },
+  notesDate: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: C.plum,
+    marginBottom: 4
+  },
+  notesList: {
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 5
+  },
+  notesItem: {
+    fontSize: 14.5,
+    lineHeight: 1.5,
+    color: C.ink
+  },
+  notesTiny: {
+    fontSize: 12,
+    color: C.inkSoft
+  },
+  notesActions: {
+    padding: "16px 24px",
+    borderTop: `1px solid ${C.lilacSoft}`,
+    display: "flex",
+    justifyContent: "center"
+  },
+  newMonthBox: {
+    marginTop: 20,
+    padding: "16px 18px",
+    borderRadius: 14,
+    background: "linear-gradient(135deg, #F3ECFB, #FBEAF3)",
+    border: `1px solid ${C.lilac}`,
+    textAlign: "center"
+  },
+  newMonthText: {
+    fontSize: 13.5,
+    lineHeight: 1.6,
+    color: C.inkSoft,
+    margin: "0 0 12px"
+  },
+  clearBtn: {
+    background: "transparent",
+    color: C.purple,
+    border: `1.5px solid ${C.purple}`,
+    borderRadius: 999,
+    padding: "9px 20px",
+    fontSize: 13.5,
+    fontWeight: 600,
+    cursor: "pointer"
+  },
+  clearBtnConfirm: {
+    background: GRAD,
+    color: "#fff",
+    border: "none",
+    borderRadius: 999,
+    padding: "9px 20px",
+    fontSize: 13.5,
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "0 6px 18px rgba(155,111,196,.32)"
+  },
+  notesDownloadRow: {
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: 20
+  },
+  proofClearRow: {
+    marginTop: 6
+  },
+  proofClearAsk: {
+    fontSize: 13,
+    color: C.inkSoft,
+    fontStyle: "italic"
+  },
+  clearBtnSmall: {
+    background: "transparent",
+    color: C.purple,
+    border: `1.5px solid ${C.lilac}`,
+    borderRadius: 999,
+    padding: "6px 16px",
+    fontSize: 12.5,
+    fontWeight: 600,
+    cursor: "pointer"
   },
   streak: {
     fontSize: 13,
